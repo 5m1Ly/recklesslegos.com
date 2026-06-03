@@ -1,0 +1,50 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - canary
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    environment: production
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "pnpm"
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      # Write .env from GitHub secrets so Prisma and Next.js can connect to the DB.
+      # Set these under Settings → Secrets → Actions in your GitHub repo.
+      - name: Write .env
+        run: |
+          cat > .env <<EOF
+          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          POSTGRES_USER=${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB=${{ secrets.POSTGRES_DB }}
+          POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
+          EOF
+
+      - name: Generate Prisma client
+        run: pnpm prisma generate
+
+      - name: Run migrations
+        run: pnpm prisma migrate deploy
+
+      - name: Build
+        run: pnpm build
+
+      # Restart the running process. Adjust the name to match whatever you used
+      # when you first started the app (e.g. `pm2 start pnpm --name recklesslegos -- start`).
+      - name: Restart app
+        run: pm2 restart recklesslegos --update-env

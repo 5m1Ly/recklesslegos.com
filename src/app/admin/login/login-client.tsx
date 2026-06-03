@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState, useTransition } from "react";
+import { actionErrorMessage } from "@/lib/stale-action";
 import { requestAdminCode, verifyAdminCode } from "../actions";
 
 export function LoginClient() {
@@ -17,28 +18,36 @@ export function LoginClient() {
     setError(null);
     setNotice(null);
     startTransition(async () => {
-      const res = await requestAdminCode(email);
-      if (!res.ok) {
-        setError(res.error ?? "Something went wrong.");
-        return;
+      try {
+        const res = await requestAdminCode(email);
+        if (!res.ok) {
+          setError(res.error ?? "Something went wrong.");
+          return;
+        }
+        setSent(true);
+        setNotice(
+          "If that email belongs to an admin, a 6-digit code is on its way.",
+        );
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      setSent(true);
-      setNotice(
-        "If that email belongs to an admin, a 6-digit code is on its way.",
-      );
     });
   };
 
   const verify = () => {
     setError(null);
     startTransition(async () => {
-      const res = await verifyAdminCode(email, code);
-      if (!res.ok) {
-        setError(res.error ?? "Couldn't verify the code.");
-        return;
+      try {
+        const res = await verifyAdminCode(email, code);
+        if (!res.ok) {
+          setError(res.error ?? "Couldn't verify the code.");
+          return;
+        }
+        router.push("/admin");
+        router.refresh();
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      router.push("/admin");
-      router.refresh();
     });
   };
 

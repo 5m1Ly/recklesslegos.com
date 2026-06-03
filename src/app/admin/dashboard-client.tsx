@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import { actionErrorMessage } from "@/lib/stale-action";
 import { fmtDate, REF_TYPES, type RefOption, type RefType } from "@/lib/types";
 import {
   addAdmin,
@@ -69,7 +70,11 @@ export function DashboardClient({
 
   const logout = () =>
     startTransition(async () => {
-      await adminLogout();
+      try {
+        await adminLogout();
+      } catch {
+        // Even if the action errors (e.g. stale build), clear the local view.
+      }
       router.push("/");
       router.refresh();
     });
@@ -148,12 +153,16 @@ function SubmissionCard({
         ? { date, title, description, ongoing, refs }
         : null;
     startTransition(async () => {
-      const res = await decideSubmission(sub.id, action, edits, note || null);
-      if (!res.ok) {
-        setError(res.error ?? "Something went wrong.");
-        return;
+      try {
+        const res = await decideSubmission(sub.id, action, edits, note || null);
+        if (!res.ok) {
+          setError(res.error ?? "Something went wrong.");
+          return;
+        }
+        onDone();
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      onDone();
     });
   };
 
@@ -541,25 +550,33 @@ function AdminsPanel({
   const add = () => {
     setError(null);
     startTransition(async () => {
-      const res = await addAdmin(email);
-      if (!res.ok) {
-        setError(res.error ?? "Couldn't add admin.");
-        return;
+      try {
+        const res = await addAdmin(email);
+        if (!res.ok) {
+          setError(res.error ?? "Couldn't add admin.");
+          return;
+        }
+        setEmail("");
+        onChanged();
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      setEmail("");
-      onChanged();
     });
   };
 
   const remove = (target: string) => {
     setError(null);
     startTransition(async () => {
-      const res = await removeAdmin(target);
-      if (!res.ok) {
-        setError(res.error ?? "Couldn't remove admin.");
-        return;
+      try {
+        const res = await removeAdmin(target);
+        if (!res.ok) {
+          setError(res.error ?? "Couldn't remove admin.");
+          return;
+        }
+        onChanged();
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      onChanged();
     });
   };
 

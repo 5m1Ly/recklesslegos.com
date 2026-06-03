@@ -53,6 +53,14 @@ export async function sendVerifyCode(
   code: string,
   context: "contribution" | "admin login",
 ) {
+  // Always surface the code in the server console outside production, so it can
+  // be read during local development regardless of SMTP configuration.
+  if (process.env.NODE_ENV !== "production") {
+    console.log(
+      `\n┌──────────────────────────────────────────────\n│ 🔑 ${context.toUpperCase()} CODE for ${to}\n│    ${code}   (expires in 10 minutes)\n└──────────────────────────────────────────────\n`,
+    );
+  }
+
   const subject = `Your ${context} verification code: ${code}`;
   const text = `Your verification code is ${code}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`;
   const html = wrap(

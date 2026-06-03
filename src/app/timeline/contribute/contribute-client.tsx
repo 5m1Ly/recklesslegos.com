@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
+import { actionErrorMessage } from "@/lib/stale-action";
 import {
   fmtDate,
   REF_TYPES,
@@ -108,21 +109,25 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
   const handleContinue = () => {
     setError(null);
     startTransition(async () => {
-      const res = await startSubmission({
-        op,
-        targetId: initial?.id ?? null,
-        date,
-        title,
-        description,
-        ongoing,
-        refs,
-      });
-      if (!res.ok || !res.submissionId) {
-        setError(res.error ?? "Something went wrong.");
-        return;
+      try {
+        const res = await startSubmission({
+          op,
+          targetId: initial?.id ?? null,
+          date,
+          title,
+          description,
+          ongoing,
+          refs,
+        });
+        if (!res.ok || !res.submissionId) {
+          setError(res.error ?? "Something went wrong.");
+          return;
+        }
+        setSubmissionId(res.submissionId);
+        setStep("verify");
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      setSubmissionId(res.submissionId);
-      setStep("verify");
     });
   };
 
@@ -131,13 +136,17 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     setNotice(null);
     if (!submissionId) return;
     startTransition(async () => {
-      const res = await sendContribCode(submissionId, email, wantsUpdates);
-      if (!res.ok) {
-        setError(res.error ?? "Couldn't send the code.");
-        return;
+      try {
+        const res = await sendContribCode(submissionId, email, wantsUpdates);
+        if (!res.ok) {
+          setError(res.error ?? "Couldn't send the code.");
+          return;
+        }
+        setCodeSent(true);
+        setNotice(`We sent a 6-digit code to ${email}. Enter it below.`);
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      setCodeSent(true);
-      setNotice(`We sent a 6-digit code to ${email}. Enter it below.`);
     });
   };
 
@@ -145,13 +154,17 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     setError(null);
     if (!submissionId) return;
     startTransition(async () => {
-      const res = await verifyContribCode(submissionId, code);
-      if (!res.ok) {
-        setError(res.error ?? "Couldn't verify the code.");
-        return;
+      try {
+        const res = await verifyContribCode(submissionId, code);
+        if (!res.ok) {
+          setError(res.error ?? "Couldn't verify the code.");
+          return;
+        }
+        setVerified(true);
+        setNotice("Email verified. You can now submit your change.");
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      setVerified(true);
-      setNotice("Email verified. You can now submit your change.");
     });
   };
 
@@ -159,12 +172,16 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     setError(null);
     if (!submissionId) return;
     startTransition(async () => {
-      const res = await finalizeSubmission(submissionId);
-      if (!res.ok) {
-        setError(res.error ?? "Couldn't submit.");
-        return;
+      try {
+        const res = await finalizeSubmission(submissionId);
+        if (!res.ok) {
+          setError(res.error ?? "Couldn't submit.");
+          return;
+        }
+        setStep("done");
+      } catch (e) {
+        setError(actionErrorMessage(e));
       }
-      setStep("done");
     });
   };
 

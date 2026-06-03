@@ -28,6 +28,11 @@ EnvironmentFile=/home/recklesslegos/actions-runner/_work/recklesslegos.com/reckl
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=HOSTNAME=0.0.0.0
+# systemd uses a minimal PATH that excludes the nvm node dir, so pnpm's
+# `#!/usr/bin/env node` lookup fails ("env: 'node': No such file or directory")
+# and the service crash-loops. Put the nvm node bin dir on PATH to fix it.
+# If you upgrade node via nvm, update this version-pinned path to match.
+Environment=PATH=/home/recklesslegos/.nvm/versions/node/v24.16.0/bin:/usr/local/bin:/usr/bin:/bin
 
 # `pnpm start` runs `next start`. Use an absolute path so systemd (which has a
 # minimal PATH) can find pnpm; confirm it with `command -v pnpm` on the server.

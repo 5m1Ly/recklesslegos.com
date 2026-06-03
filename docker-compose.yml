@@ -9,8 +9,11 @@ services:
       POSTGRES_DB: ${POSTGRES_DB:-throughline}
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
+    # Postgres 18+ images store data under /var/lib/postgresql (in a
+    # major-version subdir), not the legacy /var/lib/postgresql/data. Mounting
+    # the volume at the old path makes the image refuse to start.
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-throughline} -d ${POSTGRES_DB:-throughline}"]
       interval: 5s

@@ -29,10 +29,8 @@ function getTransport(): Transporter | null {
 async function send(to: string, subject: string, text: string, html: string) {
   const transport = getTransport();
   if (!transport) {
-    // Dev fallback: no SMTP configured — log so the flow stays testable.
-    console.log(
-      `\n[mail:dev] SMTP not configured. Would send to ${to}\n  subject: ${subject}\n  ${text.replace(/\n/g, "\n  ")}\n`,
-    );
+    // No SMTP configured — log a single concise line so the flow stays testable.
+    console.log(`[mail] (no SMTP) would send to ${to} — ${subject}`);
     return;
   }
   await transport.sendMail({ from: FROM, to, subject, text, html });
@@ -53,13 +51,12 @@ export async function sendVerifyCode(
   code: string,
   context: "contribution" | "admin login",
 ) {
-  // Always surface the code in the server console outside production, so it can
-  // be read during local development regardless of SMTP configuration.
-  if (process.env.NODE_ENV !== "production") {
-    console.log(
-      `\n┌──────────────────────────────────────────────\n│ 🔑 ${context.toUpperCase()} CODE for ${to}\n│    ${code}   (expires in 10 minutes)\n└──────────────────────────────────────────────\n`,
-    );
-  }
+  // Always surface the code in the server console as a single, greppable line,
+  // in every environment and regardless of SMTP — this is how codes are read
+  // from the logs (e.g. `journalctl -u <svc> -f | grep VERIFY-CODE`).
+  console.log(
+    `[VERIFY-CODE] ${context} code for ${to}: ${code} (expires in 10 minutes)`,
+  );
 
   const subject = `Your ${context} verification code: ${code}`;
   const text = `Your verification code is ${code}. It expires in 10 minutes. If you didn't request this, you can ignore this email.`;

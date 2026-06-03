@@ -8,7 +8,7 @@ on:
 jobs:
   deploy:
     runs-on: self-hosted
-    environment: production
+    environment: canary
 
     steps:
       - uses: actions/checkout@v4
@@ -28,7 +28,7 @@ jobs:
       - name: Write .env
         run: |
           cat > .env <<EOF
-          DATABASE_URL=${{ secrets.DATABASE_URL }}
+          DATABASE_URL=postgresql://${{ secrets.POSTGRES_USER }}:${{ secrets.POSTGRES_PASSWORD }}@${{ secrets.POSTGRES_HOST }}:${{ secrets.POSTGRES_PORT }}/${{ secrets.POSTGRES_DB }}
           POSTGRES_USER=${{ secrets.POSTGRES_USER }}
           POSTGRES_PASSWORD=${{ secrets.POSTGRES_PASSWORD }}
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
@@ -44,7 +44,9 @@ jobs:
       - name: Build
         run: pnpm build
 
-      # Restart the running process. Adjust the name to match whatever you used
-      # when you first started the app (e.g. `pm2 start pnpm --name recklesslegos -- start`).
+      # Restart the systemd service that runs the app. The runner user needs
+      # passwordless sudo for this one command, e.g. in /etc/sudoers.d/recklesslegos:
+      #   recklesslegos ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart recklesslegos
+      # Adjust the service name to match your unit (recklesslegos.service).
       - name: Restart app
-        run: pm2 restart recklesslegos --update-env
+        run: sudo systemctl restart recklesslegos

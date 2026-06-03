@@ -14,6 +14,7 @@
     "db:wait": "for i in $(seq 1 60); do [ \"$(docker inspect --format='{{.State.Health.Status}}' throughline_db 2>/dev/null)\" = healthy ] && exit 0; sleep 1; done; echo 'Postgres did not become healthy in 60s; recent container logs:' >&2; docker logs --tail 30 throughline_db; exit 1",
     "db:push": "prisma migrate dev && prisma generate",
     "db:seed": "tsx prisma/seed.ts",
+    "db:seed:admin": "tsx prisma/seed-admin.ts",
     "db:studio": "prisma studio",
     "setup": "pnpm db:up && pnpm db:wait && pnpm db:push && pnpm db:seed",
     "media:download": "tsx scripts/download-dropbox.ts"

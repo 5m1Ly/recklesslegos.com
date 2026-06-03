@@ -726,6 +726,29 @@
 .search-field input::placeholder {
   color: var(--tx-3);
 }
+/* Shared form input (used by the timeline contribute + admin flows). */
+.ipt {
+  width: 100%;
+  background: var(--ink-card);
+  border: 1px solid var(--line-2);
+  border-radius: 6px;
+  padding: 10px 14px;
+  color: var(--tx-0);
+  font-size: 14px;
+  font-family: var(--sans);
+  outline: none;
+  transition: border-color 0.14s;
+}
+.ipt:focus {
+  border-color: var(--blue);
+}
+.ipt::placeholder {
+  color: var(--tx-3);
+}
+textarea.ipt {
+  resize: vertical;
+  line-height: 1.5;
+}
 .chip {
   font-size: 13px;
   padding: 8px 14px;

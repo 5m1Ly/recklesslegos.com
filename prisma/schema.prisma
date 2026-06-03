@@ -113,3 +113,72 @@ model SocialPost {
   eventId String?
   event   Event?  @relation(fields: [eventId], references: [id])
 }
+
+// --- Community-editable timeline ---
+
+model TimelineEntry {
+  id          String        @id @default(cuid())
+  date        String // ISO "YYYY-MM-DD"
+  title       String
+  description String
+  ongoing     Boolean       @default(false)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  refs        TimelineRef[]
+}
+
+// Polymorphic reference to an existing content item.
+model TimelineRef {
+  id      String        @id @default(cuid())
+  entryId String
+  entry   TimelineEntry @relation(fields: [entryId], references: [id], onDelete: Cascade)
+  refType String // "video" | "bodycam" | "document" | "social" | "person"
+  refId   String
+
+  @@index([entryId])
+}
+
+// A proposed change to the timeline, awaiting verification + admin approval.
+model Submission {
+  id            String    @id @default(cuid())
+  op            String // "add" | "edit" | "remove"
+  targetId      String? // TimelineEntry id for edit/remove
+  date          String?
+  title         String?
+  description   String?
+  ongoing       Boolean   @default(false)
+  refs          Json? // [{ refType, refId }]
+  email         String
+  wantsUpdates  Boolean   @default(false)
+  emailVerified Boolean   @default(false)
+  codeHash      String?
+  codeExpires   DateTime?
+  codeAttempts  Int       @default(0)
+  status        String    @default("draft") // draft | pending | accepted | rejected
+  adminNote     String?
+  createdAt     DateTime  @default(now())
+  decidedAt     DateTime?
+}
+
+model AdminUser {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model AdminLoginCode {
+  id        String   @id @default(cuid())
+  email     String
+  codeHash  String
+  expiresAt DateTime
+  attempts  Int      @default(0)
+  createdAt DateTime @default(now())
+}
+
+model AdminSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

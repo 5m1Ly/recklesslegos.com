@@ -79,197 +79,8 @@ async function main() {
     ],
   });
 
-  // Events
-  await prisma.event.createMany({
-    data: [
-      {
-        id: "e1",
-        date: "2024-01-01",
-        title:
-          "Bricks and Minifigs American Fork purchases Bryan's LEGO collection",
-        cats: ["document"],
-        desc: "Bricks and Minifigs at the American Fork, Utah location purchases Bryan's LEGO collection. Ben Schneider later alleges the acquisition was exploitative, pricing the collection far below market value and taking advantage of Bryan.",
-        relVideos: 0,
-        relDocs: 0,
-        relSocial: 0,
-        relBodycam: 0,
-      },
-      {
-        id: "e2",
-        date: "2024-02-05",
-        title: "Reckless Ben publishes first video documenting the incident",
-        cats: ["video", "social"],
-        desc: "Ben Schneider publishes his first video on the Reckless Ben YouTube channel detailing what happened to Bryan's LEGO collection at Bricks and Minifigs American Fork. The video quickly gains traction online.",
-        relVideos: 2,
-        relDocs: 0,
-        relSocial: 8,
-        relBodycam: 0,
-      },
-      {
-        id: "e3",
-        date: "2024-02-06",
-        title: "GoFundMe launched to help Bryan recover his collection",
-        cats: ["social", "document"],
-        desc: "A GoFundMe campaign titled \"Help Bryan Recover His LEGO Collection\" is launched to raise funds to buy back Bryan's LEGO sets from Bricks and Minifigs. The campaign spreads rapidly as Ben's video gains views.",
-        relVideos: 0,
-        relDocs: 1,
-        relSocial: 12,
-        relBodycam: 0,
-      },
-      {
-        id: "e4",
-        date: "2024-02-12",
-        title: "Ben reacts to the response — Reaction 1",
-        cats: ["video", "social"],
-        desc: "Ben publishes a reaction video responding to the public discussion and any initial statements from Bricks and Minifigs or the broader LEGO community. Social media engagement around the story continues to grow.",
-        relVideos: 1,
-        relDocs: 0,
-        relSocial: 14,
-        relBodycam: 0,
-      },
-      {
-        id: "e5",
-        date: "2024-02-19",
-        title: '"We Steal From Old People" website launched',
-        cats: ["document", "social"],
-        desc: "Ben Schneider launches westealfromoldpeople.com, a dedicated advocacy website calling out the Bricks and Minifigs American Fork location by name and documenting the case against them.",
-        relVideos: 0,
-        relDocs: 1,
-        relSocial: 10,
-        relBodycam: 0,
-      },
-      {
-        id: "e6",
-        date: "2024-02-26",
-        title: "Second reaction video published — Reaction 2",
-        cats: ["video", "social"],
-        desc: "Ben publishes a second reaction video continuing his coverage. Additional commentary, evidence, and community response are addressed.",
-        relVideos: 1,
-        relDocs: 0,
-        relSocial: 9,
-        relBodycam: 0,
-      },
-      {
-        id: "e7",
-        date: "2024-03-05",
-        title: "Bricks and Minifigs American Fork — police involvement",
-        cats: ["police", "video"],
-        desc: "American Fork Police Department becomes involved in the incident. Ben and others continue documenting the situation. AFPD later publishes their own video account of what happened.",
-        relVideos: 1,
-        relDocs: 0,
-        relSocial: 6,
-        relBodycam: 1,
-      },
-      {
-        id: "e8",
-        date: "2024-03-12",
-        title: "Bricks and Minifigs corporate statement",
-        cats: ["document", "social"],
-        desc: "Bricks and Minifigs corporate (the franchisor) issues a public statement addressing the controversy surrounding their American Fork franchise location.",
-        relVideos: 0,
-        relDocs: 1,
-        relSocial: 8,
-        relBodycam: 0,
-      },
-      {
-        id: "e9",
-        date: "2024-03-18",
-        title: "Reckless Ben publishes second main video",
-        cats: ["video", "social"],
-        desc: "Ben publishes a second major investigative video continuing to document the case, including any new developments, statements, or evidence uncovered.",
-        relVideos: 1,
-        relDocs: 0,
-        relSocial: 11,
-        relBodycam: 0,
-      },
-      {
-        id: "e10",
-        date: "2024-03-25",
-        title: "Third reaction video — Reaction 3",
-        cats: ["video", "social"],
-        desc: "Ben publishes a third reaction video responding to further developments in the story.",
-        relVideos: 1,
-        relDocs: 0,
-        relSocial: 7,
-        relBodycam: 0,
-      },
-      {
-        id: "e11",
-        date: "2024-04-01",
-        title: "American Fork PD publishes their own video",
-        cats: ["police", "video"],
-        desc: "The American Fork Police Department publishes an official video on their YouTube channel presenting their account of the incident and the department's involvement.",
-        relVideos: 1,
-        relDocs: 0,
-        relSocial: 5,
-        relBodycam: 1,
-      },
-      {
-        id: "e12",
-        date: "2024-04-15",
-        title: "Additional secondary channel coverage",
-        cats: ["video", "social"],
-        desc: "Ben continues documenting the story through his secondary YouTube channel and social media platforms, providing updates and ongoing coverage.",
-        relVideos: 1,
-        relDocs: 0,
-        relSocial: 6,
-        relBodycam: 0,
-      },
-      {
-        id: "e13",
-        date: "2024-06-01",
-        title:
-          "Wikipedia article published — Bricks & Minifigs–Reckless Ben controversy",
-        cats: ["press", "document"],
-        desc: 'A Wikipedia article titled "Bricks & Minifigs–Reckless Ben controversy" is published, consolidating the documented public record of the incident. The article also references related pages on Reckless Ben and Bricks and Minifigs.',
-        relVideos: 0,
-        relDocs: 1,
-        relSocial: 4,
-        relBodycam: 0,
-      },
-      {
-        id: "e14",
-        date: "2024-01-01",
-        title: "Ongoing — archive and community coverage",
-        cats: ["press", "social"],
-        ongoing: true,
-        desc: "Community coverage, commentary, and documentation of the case continues across platforms. The GoFundMe, westealfromoldpeople.com, and related social media accounts remain active.",
-        relVideos: 0,
-        relDocs: 0,
-        relSocial: 0,
-        relBodycam: 0,
-      },
-    ],
-  });
-
-  // Event-person relations
-  await prisma.eventPerson.createMany({
-    data: [
-      { eventId: "e1", personId: "bricks-minifigs-af" },
-      { eventId: "e1", personId: "bryan" },
-      { eventId: "e2", personId: "ben-schneider" },
-      { eventId: "e2", personId: "bricks-minifigs-af" },
-      { eventId: "e2", personId: "bryan" },
-      { eventId: "e3", personId: "ben-schneider" },
-      { eventId: "e3", personId: "bryan" },
-      { eventId: "e4", personId: "ben-schneider" },
-      { eventId: "e4", personId: "bricks-minifigs-af" },
-      { eventId: "e5", personId: "ben-schneider" },
-      { eventId: "e5", personId: "bricks-minifigs-af" },
-      { eventId: "e6", personId: "ben-schneider" },
-      { eventId: "e7", personId: "american-fork-pd" },
-      { eventId: "e7", personId: "bricks-minifigs-af" },
-      { eventId: "e7", personId: "ben-schneider" },
-      { eventId: "e8", personId: "bricks-minifigs-corp" },
-      { eventId: "e9", personId: "ben-schneider" },
-      { eventId: "e10", personId: "ben-schneider" },
-      { eventId: "e11", personId: "american-fork-pd" },
-      { eventId: "e12", personId: "ben-schneider" },
-      { eventId: "e13", personId: "ben-schneider" },
-      { eventId: "e13", personId: "bricks-minifigs-af" },
-      { eventId: "e13", personId: "bricks-minifigs-corp" },
-    ],
-  });
+  // Timeline starts empty — events are now contributed by the community and
+  // approved by an admin. See src/app/timeline.
 
   // Videos (real YouTube IDs from sources; dates are approximate)
   await prisma.video.createMany({
@@ -284,7 +95,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.youtube.com/watch?v=wscQpkcwgNU&list=PLFffRukL8RHEsbOG6HvIO-0rd3mreT4b-&index=1",
-        eventId: "e2",
       },
       {
         id: "v2",
@@ -296,7 +106,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.youtube.com/watch?v=NbrAtL7v_Vs&list=PLFffRukL8RHEsbOG6HvIO-0rd3mreT4b-&index=2",
-        eventId: "e2",
       },
       {
         id: "v3",
@@ -308,7 +117,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.youtube.com/watch?v=bWg2bnAqW6k&list=PLFffRukL8RHEsbOG6HvIO-0rd3mreT4b-&index=3",
-        eventId: "e4",
       },
       {
         id: "v4",
@@ -320,7 +128,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.youtube.com/watch?v=nny2ojTqW3A&list=PLFffRukL8RHEsbOG6HvIO-0rd3mreT4b-&index=4",
-        eventId: "e6",
       },
       {
         id: "v5",
@@ -332,7 +139,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.youtube.com/watch?v=cxZPfj8AlmY&list=PLFffRukL8RHEsbOG6HvIO-0rd3mreT4b-&index=5",
-        eventId: "e9",
       },
       {
         id: "v6",
@@ -344,7 +150,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.youtube.com/watch?v=2YEzhDn0jY8&list=PLFffRukL8RHEsbOG6HvIO-0rd3mreT4b-&index=6",
-        eventId: "e10",
       },
       {
         id: "v7",
@@ -356,7 +161,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.youtube.com/watch?v=x7_InQEaHQA&list=PLFffRukL8RHEsbOG6HvIO-0rd3mreT4b-&index=7",
-        eventId: "e12",
       },
       {
         id: "v8",
@@ -369,7 +173,6 @@ async function main() {
         views: "—",
         official: true,
         url: "https://www.youtube.com/watch?v=IcVmSQpIPRY",
-        eventId: "e11",
       },
       {
         id: "v9",
@@ -381,7 +184,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: "https://www.patreon.com/RecklessBen",
-        eventId: "e2",
       },
     ],
   });
@@ -401,7 +203,6 @@ async function main() {
         type: "Incident footage",
         released: "2024-03-05",
         url: "https://www.dropbox.com/scl/fo/22m8klcq7ewmsfvdegv76/AOmqzl9SPnQiq9wUxkAKzfU?dl=0&rlkey=2r4sts4e87dv7mjyxqj3q98r4",
-        eventId: "e7",
       },
     ],
   });
@@ -420,7 +221,6 @@ async function main() {
         summary:
           "Public fundraising campaign launched to help Bryan buy back his LEGO collection from Bricks and Minifigs American Fork.",
         url: "https://www.gofundme.com/f/help-bryan-recover-his-lego-collection",
-        eventId: "e3",
       },
       {
         id: "d2",
@@ -433,7 +233,6 @@ async function main() {
         summary:
           "Website created by Ben Schneider documenting the case against Bricks and Minifigs American Fork and calling for accountability.",
         url: "https://westealfromoldpeople.com/",
-        eventId: "e5",
       },
       {
         id: "d3",
@@ -446,7 +245,6 @@ async function main() {
         summary:
           "Wikipedia article documenting the Bricks & Minifigs–Reckless Ben controversy, including the key events, parties involved, and public response.",
         url: "https://en.wikipedia.org/wiki/Bricks_%26_Minifigs%E2%80%93Reckless_Ben_controversy",
-        eventId: "e13",
       },
       {
         id: "d4",
@@ -459,7 +257,6 @@ async function main() {
         summary:
           "Wikipedia article about Ben Schneider (Reckless Ben), the YouTube content creator at the center of the controversy.",
         url: "https://en.wikipedia.org/wiki/Reckless_Ben",
-        eventId: "e13",
       },
       {
         id: "d5",
@@ -472,7 +269,6 @@ async function main() {
         summary:
           "Official website for the Bricks and Minifigs franchise, including store locator and franchise information.",
         url: "https://bricksandminifigs.com/",
-        eventId: null,
       },
     ],
   });
@@ -493,7 +289,6 @@ async function main() {
         replies: "3.8K",
         verified: true,
         url: "https://www.instagram.com/recklessbenschneider",
-        eventId: "e2",
       },
       {
         id: "s2",
@@ -506,7 +301,6 @@ async function main() {
         reposts: "89K",
         replies: "14.2K",
         url: "https://www.tiktok.com/@reckless_ben",
-        eventId: "e2",
       },
       {
         id: "s3",
@@ -520,7 +314,6 @@ async function main() {
         replies: "2.1K",
         verified: true,
         url: "https://www.instagram.com/recklessbenschneider",
-        eventId: "e3",
       },
       {
         id: "s4",
@@ -533,7 +326,6 @@ async function main() {
         reposts: "51K",
         replies: "9.4K",
         url: "https://www.tiktok.com/@reckless_ben",
-        eventId: "e9",
       },
       {
         id: "s5",
@@ -547,7 +339,6 @@ async function main() {
         replies: "5.7K",
         verified: true,
         url: "https://www.instagram.com/recklessbenschneider",
-        eventId: "e11",
       },
 
       // ── Bricks and Minifigs ───────────────────────────────────────────
@@ -563,7 +354,6 @@ async function main() {
         replies: "8.9K",
         verified: true,
         url: "https://www.instagram.com/bricksandminifigsofficial",
-        eventId: "e8",
       },
       {
         id: "s7",
@@ -577,7 +367,6 @@ async function main() {
         replies: "7.3K",
         verified: true,
         url: "https://www.facebook.com/bamfranchising",
-        eventId: "e8",
       },
 
       // ── American Fork Police ──────────────────────────────────────────
@@ -593,7 +382,6 @@ async function main() {
         replies: "2.4K",
         verified: true,
         url: "https://www.facebook.com/AmericanForkPolice",
-        eventId: "e11",
       },
       {
         id: "s9",
@@ -607,7 +395,6 @@ async function main() {
         replies: "890",
         verified: true,
         url: "https://x.com/afpolice",
-        eventId: "e11",
       },
       {
         id: "s10",
@@ -621,7 +408,6 @@ async function main() {
         replies: "740",
         verified: true,
         url: "https://www.instagram.com/af_police",
-        eventId: "e11",
       },
 
       // ── Community ─────────────────────────────────────────────────────
@@ -635,7 +421,6 @@ async function main() {
         likes: "14.2K",
         reposts: "—",
         replies: "1.8K",
-        eventId: "e2",
       },
       {
         id: "s12",
@@ -647,7 +432,6 @@ async function main() {
         likes: "8.9K",
         reposts: "3.4K",
         replies: "1.2K",
-        eventId: "e3",
       },
       {
         id: "s13",
@@ -659,7 +443,6 @@ async function main() {
         likes: "9.3K",
         reposts: "—",
         replies: "640",
-        eventId: "e11",
       },
       {
         id: "s14",
@@ -671,7 +454,6 @@ async function main() {
         likes: "12.1K",
         reposts: "5.8K",
         replies: "2.3K",
-        eventId: "e11",
       },
       {
         id: "s15",
@@ -683,7 +465,6 @@ async function main() {
         likes: "6.7K",
         reposts: "—",
         replies: "890",
-        eventId: "e5",
       },
 
       // ── Third-party creator coverage ──────────────────────────────────
@@ -697,7 +478,6 @@ async function main() {
         likes: "524K",
         reposts: "112K",
         replies: "18.3K",
-        eventId: "e7",
       },
       {
         id: "tp2",
@@ -709,7 +489,6 @@ async function main() {
         likes: "891K",
         reposts: "204K",
         replies: "27.6K",
-        eventId: "e11",
       },
       {
         id: "tp3",
@@ -721,7 +500,6 @@ async function main() {
         likes: "203K",
         reposts: "61K",
         replies: "9.1K",
-        eventId: "e5",
       },
       {
         id: "tp4",
@@ -733,7 +511,6 @@ async function main() {
         likes: "41.2K",
         reposts: "—",
         replies: "4.8K",
-        eventId: "e4",
       },
       {
         id: "tp5",
@@ -745,7 +522,6 @@ async function main() {
         likes: "29.7K",
         reposts: "—",
         replies: "3.6K",
-        eventId: "e11",
       },
       {
         id: "tp6",
@@ -757,7 +533,6 @@ async function main() {
         likes: "7.8K",
         reposts: "2.9K",
         replies: "934",
-        eventId: "e7",
       },
       {
         id: "tp7",
@@ -769,7 +544,6 @@ async function main() {
         likes: "18.9K",
         reposts: "8.4K",
         replies: "2.7K",
-        eventId: "e11",
       },
       {
         id: "tp8",
@@ -781,7 +555,6 @@ async function main() {
         likes: "47.8K",
         reposts: "—",
         replies: "3.2K",
-        eventId: "e7",
       },
       {
         id: "tp9",
@@ -793,7 +566,6 @@ async function main() {
         likes: "11.3K",
         reposts: "—",
         replies: "1.4K",
-        eventId: "e11",
       },
       {
         id: "tp10",
@@ -805,7 +577,6 @@ async function main() {
         likes: "2.8K",
         reposts: "1.1K",
         replies: "512",
-        eventId: "e3",
       },
     ],
   });
@@ -824,7 +595,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: null,
-        eventId: "e2",
       },
       {
         id: "cov-2",
@@ -836,7 +606,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: null,
-        eventId: "e9",
       },
       {
         id: "cov-3",
@@ -848,7 +617,6 @@ async function main() {
         dur: "—",
         views: "—",
         url: null,
-        eventId: "e8",
       },
       {
         id: "cov-4",
@@ -860,9 +628,15 @@ async function main() {
         dur: "—",
         views: "—",
         url: null,
-        eventId: "e11",
       },
     ],
+  });
+
+  // Seed the initial admin. More admins can be added from the dashboard.
+  await prisma.adminUser.upsert({
+    where: { email: "hbouma01@gmail.com" },
+    update: {},
+    create: { email: "hbouma01@gmail.com" },
   });
 
   console.log("✓ Seed complete");

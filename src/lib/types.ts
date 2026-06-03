@@ -156,6 +156,61 @@ export interface SocialPostBase {
   eventId: string | null;
 }
 
+// --- Community-editable timeline ---
+
+export type RefType = "video" | "bodycam" | "document" | "social" | "person";
+
+export const REF_TYPES: Record<
+  RefType,
+  { label: string; plural: string; href: (id: string) => string }
+> = {
+  video: { label: "Video", plural: "Videos", href: () => "/videos" },
+  bodycam: { label: "Bodycam", plural: "Bodycam", href: () => "/bodycam" },
+  document: {
+    label: "Document",
+    plural: "Documents",
+    href: () => "/documents",
+  },
+  social: { label: "Social post", plural: "Social", href: () => "/social" },
+  person: { label: "Person", plural: "People", href: (id) => `/people/${id}` },
+};
+
+export const REF_TYPE_KEYS: RefType[] = [
+  "video",
+  "bodycam",
+  "document",
+  "social",
+  "person",
+];
+
+export interface TimelineRefBase {
+  refType: RefType;
+  refId: string;
+  // Resolved display fields (filled in when rendering)
+  label?: string;
+  href?: string;
+}
+
+export interface TimelineEntryBase {
+  id: string;
+  date: string;
+  title: string;
+  description: string;
+  ongoing: boolean;
+  refs: TimelineRefBase[];
+}
+
+// A picker option for an existing content item that can be referenced.
+export interface RefOption {
+  refType: RefType;
+  refId: string;
+  label: string;
+  meta: string;
+  date: string;
+}
+
+export type SubmissionOp = "add" | "edit" | "remove";
+
 // Aliases used by components (Biome formatter-stable names)
 export type Event = EventBase;
 export type Person = PersonBase;

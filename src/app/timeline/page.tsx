@@ -3,17 +3,10 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { TimelineView } from "@/components/timeline-view";
-import { prisma } from "@/lib/db";
+import { getTimelineEntries } from "@/lib/timeline";
 
 export default async function TimelinePage() {
-  const events = await prisma.event.findMany({
-    orderBy: { date: "asc" },
-    include: {
-      people: {
-        include: { person: true },
-      },
-    },
-  });
+  const entries = await getTimelineEntries();
 
   return (
     <div>
@@ -26,10 +19,10 @@ export default async function TimelinePage() {
             </span>
           }
           title="Case timeline"
-          sub="Every event in the record, in chronological order. Filter by category, search, and expand any event to see its linked videos, documents, bodycam files, social posts, and the people involved."
+          sub="A community-maintained record of the case, in chronological order. Search, filter by reference type, and expand any event to see its linked videos, documents, bodycam files, social posts, and people. Anyone can propose a change — it goes live once a moderator approves it."
         />
         <div className="wrap-wide section-sm" style={{ paddingTop: 8 }}>
-          <TimelineView events={events} />
+          <TimelineView entries={entries} />
         </div>
       </main>
       <Footer />

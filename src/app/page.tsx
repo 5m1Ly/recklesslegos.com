@@ -4,17 +4,10 @@ import { Footer } from "@/components/footer";
 import { Icons } from "@/components/icons";
 import { Nav } from "@/components/nav";
 import { TimelineView } from "@/components/timeline-view";
-import { prisma } from "@/lib/db";
+import { getTimelineEntries } from "@/lib/timeline";
 
 export default async function HomePage() {
-  const events = await prisma.event.findMany({
-    orderBy: { date: "asc" },
-    include: {
-      people: {
-        include: { person: true },
-      },
-    },
-  });
+  const entries = await getTimelineEntries();
 
   const stats = [
     { n: "9", label: "Videos archived", x: "2 channels + AFPD" },
@@ -271,7 +264,7 @@ export default async function HomePage() {
               Open full timeline <Icons.arrow />
             </Link>
           </div>
-          <TimelineView events={events} compact />
+          <TimelineView entries={entries} compact />
         </section>
 
         <div className="wrap-wide">

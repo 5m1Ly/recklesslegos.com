@@ -30,10 +30,17 @@ export async function requestAdminCode(email: string): Promise<ActionResult> {
     return { ok: false, error: "Enter a valid email address." };
   const normalized = email.trim().toLowerCase();
 
-  const admin = await prisma.adminUser.findUnique({
-    where: { email: normalized },
-    select: { id: true },
-  });
+  let admin: { id: string } | null = null;
+  try {
+    admin = await prisma.adminUser.findUnique({
+      where: { email: normalized },
+      select: { id: true },
+    });
+  } catch (e) {
+    // Surface DB / missing-migration problems instead of failing silently.
+    console.error(`[admin-login] DB error looking up ${normalized}:`, e);
+    return { ok: false, error: "Server error. Please try again later." };
+  }
 
   // Only send to real admins, but always report success to avoid enumeration.
   if (admin) {
@@ -47,6 +54,10 @@ export async function requestAdminCode(email: string): Promise<ActionResult> {
       },
     });
     await sendVerifyCode(normalized, code, "admin login");
+  } else {
+    console.log(
+      `[admin-login] no admin account for ${normalized} — no code sent. Seed it with: pnpm db:seed`,
+    );
   }
 
   return { ok: true };

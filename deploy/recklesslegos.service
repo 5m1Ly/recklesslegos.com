@@ -31,7 +31,7 @@ Environment=HOSTNAME=0.0.0.0
 
 # `pnpm start` runs `next start`. Use an absolute path so systemd (which has a
 # minimal PATH) can find pnpm; confirm it with `command -v pnpm` on the server.
-ExecStart=/usr/bin/pnpm start
+ExecStart=/home/recklesslegos/.nvm/versions/node/v24.16.0/bin/pnpm start
 
 Restart=on-failure
 RestartSec=5

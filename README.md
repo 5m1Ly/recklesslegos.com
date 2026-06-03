@@ -1,36 +1,113 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Throughline
 
-## Getting Started
+An independent case archive documenting the Bricks and Minifigs / Reckless Ben controversy — built with Next.js, Prisma, and PostgreSQL.
 
-First, run the development server:
+## Stack
+
+| Layer     | Tech                                   |
+| --------- | -------------------------------------- |
+| Framework | Next.js 16 (App Router, React 19)      |
+| Language  | TypeScript (strict)                    |
+| Styling   | Tailwind v4 + custom CSS design system |
+| ORM       | Prisma 7                               |
+| Database  | PostgreSQL 16 (Docker)                 |
+| Linter    | Biome                                  |
+
+## Getting started
+
+### 1. Install dependencies
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+pnpm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### 2. Configure environment
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+Copy the example env file and adjust if needed:
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+cp .env.example .env
+```
 
-## Learn More
+The only value you may need to change is `POSTGRES_PORT` if `5433` conflicts with something already running on your machine. Change **both** `POSTGRES_PORT` and the port in `DATABASE_URL` to the same value.
 
-To learn more about Next.js, take a look at the following resources:
+### 3. Start the database, run migrations, and seed
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```bash
+pnpm setup
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+This runs three steps in order:
+1. `pnpm db:up` — starts the PostgreSQL container
+2. `pnpm db:wait` — waits until the container's healthcheck reports healthy
+3. `pnpm db:push` — applies the Prisma schema as a migration
+4. `pnpm db:seed` — seeds all fictional data (events, people, videos, documents, social posts)
 
-## Deploy on Vercel
+### 4. Start the dev server
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+```bash
+pnpm dev
+```
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Open [http://localhost:3000](http://localhost:3000) (or the next available port).
+
+## Database scripts
+
+| Command          | Description                                                          |
+| ---------------- | -------------------------------------------------------------------- |
+| `pnpm db:up`     | Start the Postgres Docker container                                  |
+| `pnpm db:down`   | Stop and remove the container                                        |
+| `pnpm db:wait`   | Block until the container is healthy                                 |
+| `pnpm db:push`   | Run pending Prisma migrations (`prisma migrate dev`)                 |
+| `pnpm db:seed`   | Seed the database with fictional sample data                         |
+| `pnpm db:studio` | Open Prisma Studio at [http://localhost:5555](http://localhost:5555) |
+| `pnpm setup`     | Full first-run setup (up + wait + push + seed)                       |
+
+## Project structure
+
+```
+src/
+  app/
+    page.tsx              # Home
+    timeline/page.tsx     # Filterable case timeline
+    videos/page.tsx       # Video archive grouped by source
+    bodycam/page.tsx      # Police bodycam evidence table
+    documents/page.tsx    # Document archive with viewer
+    social/page.tsx       # Social media archive
+    people/page.tsx       # People directory
+    people/[id]/page.tsx  # Individual person profile
+  components/
+    nav.tsx               # Sticky nav with mobile drawer
+    footer.tsx
+    icons.tsx             # Inline SVG icon set
+    timeline-view.tsx     # Interactive timeline (client)
+    media-modal.tsx       # Video/bodycam modal player
+    doc-viewer.tsx        # Document viewer modal
+    search-overlay.tsx    # Keyboard-driven search overlay
+    avatar.tsx / cat-tag.tsx / page-head.tsx
+  lib/
+    db.ts                 # Prisma singleton (PrismaPg adapter)
+    types.ts              # Shared types + constants + fmtDate
+prisma/
+  schema.prisma           # Models: Person, Event, Video, Bodycam, Document, SocialPost
+  seed.ts                 # Fictional sample data
+design/                   # Original design reference files (not compiled)
+```
+
+## Docker details
+
+The compose file uses environment variables for all credentials and the host port, so nothing needs editing beyond `.env`:
+
+```yaml
+ports:
+  - "${POSTGRES_PORT:-5433}:5432"
+```
+
+A healthcheck is configured so `pnpm db:wait` polls `docker inspect` until Postgres is actually accepting connections rather than relying on a fixed sleep.
+
+## Notes
+
+- Event dates in the seed are **approximate** — verify against original source URLs before treating as authoritative.
+- The `design/` folder contains the original single-file JSX prototype used as the design reference. It is excluded from linting and is not part of the compiled app.
+- The Prisma generated client lives at `src/generated/prisma/` and is excluded from linting (all files carry `@ts-nocheck`).
+- Source URLs and links to real parties (YouTube, GoFundMe, Wikipedia, Dropbox) are stored in the database and surface as external links throughout the archive.

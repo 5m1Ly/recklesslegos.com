@@ -1,0 +1,115 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Person {
+  id       String  @id
+  name     String
+  role     String
+  org      String
+  side     String
+  verified Boolean @default(false)
+  orgFlag  Boolean @default(false)
+  bio      String
+
+  events EventPerson[]
+}
+
+model Event {
+  id         String   @id
+  date       String
+  title      String
+  cats       String[]
+  desc       String
+  ongoing    Boolean  @default(false)
+  relVideos  Int      @default(0)
+  relDocs    Int      @default(0)
+  relBodycam Int      @default(0)
+  relSocial  Int      @default(0)
+
+  people    EventPerson[]
+  videos    Video[]
+  bodycam   Bodycam[]
+  documents Document[]
+  social    SocialPost[]
+}
+
+model EventPerson {
+  eventId  String
+  personId String
+
+  event  Event  @relation(fields: [eventId], references: [id])
+  person Person @relation(fields: [personId], references: [id])
+
+  @@id([eventId, personId])
+}
+
+model Video {
+  id       String  @id
+  tier     String
+  title    String
+  source   String
+  platform String
+  date     String
+  dur      String
+  views    String  @default("—")
+  official Boolean @default(false)
+  url      String?
+
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id])
+}
+
+model Bodycam {
+  id       String  @id
+  title    String
+  officer  String
+  unit     String
+  date     String
+  time     String
+  dur      String
+  location String
+  type     String
+  released String
+  url      String?
+
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id])
+}
+
+model Document {
+  id      String   @id
+  title   String
+  type    String
+  source  String
+  date    String
+  pages   Int
+  tags    String[]
+  summary String
+  url     String?
+
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id])
+}
+
+model SocialPost {
+  id       String  @id
+  platform String
+  author   String
+  handle   String
+  date     String
+  text     String
+  likes    String
+  reposts  String
+  replies  String
+  verified Boolean @default(false)
+  url      String?
+
+  eventId String?
+  event   Event?  @relation(fields: [eventId], references: [id])
+}

@@ -38,6 +38,11 @@ jobs:
       - name: Generate Prisma client
         run: pnpm prisma generate
 
+      # Bring up the Postgres container and block until its healthcheck passes,
+      # otherwise `migrate deploy` races the database and fails to connect.
+      - name: Start database
+        run: pnpm db:up && pnpm db:wait
+
       - name: Run migrations
         run: pnpm prisma migrate deploy
 

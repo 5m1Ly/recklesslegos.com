@@ -21,10 +21,10 @@ User=recklesslegos
 Group=recklesslegos
 
 # The GitHub Actions runner checks the repo out here and builds in place.
-WorkingDirectory=/home/recklesslegos/actions-runner/_work/recklessbricks.com/recklessbricks.com
+WorkingDirectory=/home/recklesslegos/actions-runner/_work/recklesslegos.com/recklesslegos.com
 
 # Load DATABASE_URL and POSTGRES_* (written by the "Write .env" deploy step).
-EnvironmentFile=/home/recklesslegos/actions-runner/_work/recklessbricks.com/recklessbricks.com/.env
+EnvironmentFile=/home/recklesslegos/actions-runner/_work/recklesslegos.com/recklesslegos.com/.env
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=HOSTNAME=0.0.0.0

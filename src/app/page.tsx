@@ -208,9 +208,9 @@ export default async function HomePage() {
                 published their own video.
               </p>
               <p className="body-txt" style={{ marginBottom: 22 }}>
-                RecklessBricks collects what each party has made public — videos,
-                documents, social accounts, and police footage — and keeps it
-                organized, sourced, and cross-linked.
+                RecklessBricks collects what each party has made public —
+                videos, documents, social accounts, and police footage — and
+                keeps it organized, sourced, and cross-linked.
               </p>
               <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
                 <span className="tag solid">

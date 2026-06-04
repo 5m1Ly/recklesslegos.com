@@ -97,7 +97,11 @@ export default async function HomePage() {
                 <em style={{ fontStyle: "italic", color: "var(--blue)" }}>
                   Reckless&nbsp;Ben
                 </em>{" "}
-                &amp;<br/>Bricks and Minifigs<br/>community archive.
+                &amp;
+				<br/>
+				Bricks and Minifigs
+				<br/>
+				Community Archive.
               </h1>
               <p className="lede" style={{ maxWidth: 540, marginBottom: 30 }}>
                 A centralized archive of the publicly available videos,

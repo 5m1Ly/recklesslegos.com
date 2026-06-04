@@ -120,34 +120,33 @@ export default async function HomePage() {
                 borderLeft: "1px solid var(--line)",
                 position: "relative",
                 minHeight: 480,
+                display: "flex",
+                alignItems: "center",
+                padding: 28,
               }}
             >
               <div
-                className="ph thumb"
                 style={{
-                  position: "absolute",
-                  inset: 28,
+                  position: "relative",
+                  width: "100%",
+                  aspectRatio: "16/9",
                   borderRadius: "var(--radius)",
+                  overflow: "hidden",
                 }}
               >
-                <span
-                  className="ph-lbl"
-                  style={{ position: "absolute", bottom: 14, left: 14 }}
-                >
-                  Featured · case explainer video
-                </span>
-                <div
-                  className="play-badge"
+                <iframe
+                  src="https://www.youtube.com/embed/5H714qko9aY"
+                  title="Featured · case explainer video"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
                   style={{
-                    left: "50%",
-                    top: "50%",
-                    transform: "translate(-50%,-50%)",
-                    width: 58,
-                    height: 58,
+                    position: "absolute",
+                    inset: 0,
+                    width: "100%",
+                    height: "100%",
+                    border: 0,
                   }}
-                >
-                  <Icons.play />
-                </div>
+                />
               </div>
             </div>
           </div>

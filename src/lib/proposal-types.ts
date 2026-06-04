@@ -162,6 +162,22 @@ export const PROPOSAL_TYPES: Record<ProposalType, ProposalTypeDef> = {
   },
 };
 
+/** Map a content row (or stored payload) to string form values keyed by field. */
+export function rowToValues(
+  def: ProposalTypeDef,
+  row: Record<string, unknown>,
+): Record<string, string> {
+  const out: Record<string, string> = {};
+  for (const f of def.fields) {
+    const v = row[f.key];
+    if (v == null) out[f.key] = "";
+    else if (typeof v === "boolean") out[f.key] = v ? "true" : "false";
+    else if (Array.isArray(v)) out[f.key] = v.join(", ");
+    else out[f.key] = String(v);
+  }
+  return out;
+}
+
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 
 /** Returns an error string, or null when the payload is valid for (type, op). */

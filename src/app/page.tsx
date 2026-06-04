@@ -125,6 +125,7 @@ export default async function HomePage() {
                 position: "relative",
                 minHeight: 480,
                 display: "flex",
+				flexDirection: "column",
                 alignItems: "center",
                 padding: 28,
               }}

@@ -56,6 +56,11 @@ export default async function PeoplePage() {
               fictional.
             </p>
           </div>
+          <div style={{ marginTop: 18 }}>
+            <Link href="/propose/person?op=add" className="btn btn-ghost">
+              + Propose an addition
+            </Link>
+          </div>
         </PageHead>
         <PeopleClient people={people} />
       </main>

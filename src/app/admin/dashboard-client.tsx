@@ -2,11 +2,18 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState, useTransition } from "react";
+import { ProposalFields } from "@/components/proposal-form";
+import {
+  isProposalType,
+  PROPOSAL_TYPES,
+  type ProposalTypeDef,
+} from "@/lib/proposal-types";
 import { actionErrorMessage } from "@/lib/stale-action";
 import { fmtDate, REF_TYPES, type RefOption, type RefType } from "@/lib/types";
 import {
   addAdmin,
   adminLogout,
+  type ContentEdits,
   type DecisionEdits,
   decideSubmission,
   removeAdmin,
@@ -25,18 +32,30 @@ interface EntrySnapshot {
 
 export interface PendingSubmission {
   id: string;
+  contentType: string; // "timeline" | video | bodycam | document | social | person
   op: Op;
   targetId: string | null;
+  email: string;
+  wantsUpdates: boolean;
+  createdAt: string;
+  // Timeline submissions:
   date: string;
   title: string;
   description: string;
   ongoing: boolean;
   refs: Ref[];
-  email: string;
-  wantsUpdates: boolean;
-  createdAt: string;
   target: EntrySnapshot | null;
+  // Content-type submissions:
+  contentLabel: string | null;
+  payloadValues: Record<string, string> | null;
+  targetValues: Record<string, string> | null;
 }
+
+const CONTENT_OP_LABEL: Record<Op, string> = {
+  add: "Add",
+  edit: "Edit",
+  remove: "Remove",
+};
 
 interface Props {
   pending: PendingSubmission[];
@@ -103,15 +122,19 @@ export function DashboardClient({
           </p>
         </div>
       ) : (
-        pending.map((s) => (
-          <SubmissionCard
-            key={s.id}
-            sub={s}
-            refOptions={refOptions}
-            refLabel={refLabel}
-            onDone={() => router.refresh()}
-          />
-        ))
+        pending.map((s) =>
+          s.contentType === "timeline" ? (
+            <SubmissionCard
+              key={s.id}
+              sub={s}
+              refOptions={refOptions}
+              refLabel={refLabel}
+              onDone={() => router.refresh()}
+            />
+          ) : (
+            <ContentCard key={s.id} sub={s} onDone={() => router.refresh()} />
+          ),
+        )
       )}
 
       <AdminsPanel
@@ -305,6 +328,219 @@ function SubmissionCard({
           </button>
         )}
       </div>
+    </div>
+  );
+}
+
+function ContentCard({
+  sub,
+  onDone,
+}: {
+  sub: PendingSubmission;
+  onDone: () => void;
+}) {
+  const def = isProposalType(sub.contentType)
+    ? PROPOSAL_TYPES[sub.contentType]
+    : null;
+  const [note, setNote] = useState("");
+  const [modifying, setModifying] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
+  const [values, setValues] = useState<Record<string, string>>(
+    sub.payloadValues ?? {},
+  );
+
+  if (!def) return null;
+
+  const run = (action: "accept" | "modify_accept" | "reject") => {
+    setError(null);
+    const edits: ContentEdits | null =
+      action === "modify_accept" ? { payload: values } : null;
+    startTransition(async () => {
+      try {
+        const res = await decideSubmission(sub.id, action, edits, note || null);
+        if (!res.ok) {
+          setError(res.error ?? "Something went wrong.");
+          return;
+        }
+        onDone();
+      } catch (e) {
+        setError(actionErrorMessage(e));
+      }
+    });
+  };
+
+  return (
+    <div
+      className="card card-pad"
+      style={{ display: "flex", flexDirection: "column", gap: 14 }}
+    >
+      <div
+        style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}
+      >
+        <span className="tag solid">
+          {CONTENT_OP_LABEL[sub.op]} · {def.label}
+        </span>
+        <span className="mono-sm">from {sub.email || "(email withheld)"}</span>
+        {sub.wantsUpdates && (
+          <span className="tag social">
+            <span className="dot" />
+            wants updates
+          </span>
+        )}
+      </div>
+
+      {sub.op !== "add" && sub.targetValues && (
+        <div>
+          <span className="mono-label">Current</span>
+          <PayloadPreview def={def} values={sub.targetValues} muted />
+        </div>
+      )}
+
+      {sub.op === "remove" && !sub.targetValues && (
+        <p className="body-txt" style={{ margin: 0 }}>
+          Proposes removing {sub.contentLabel ?? "this item"}.
+        </p>
+      )}
+
+      {sub.op !== "remove" && (
+        <div>
+          <span className="mono-label">
+            {sub.op === "edit" ? "Proposed changes" : "Proposed"}
+          </span>
+          {!modifying ? (
+            <PayloadPreview def={def} values={sub.payloadValues ?? {}} />
+          ) : (
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 12,
+                marginTop: 6,
+              }}
+            >
+              <ProposalFields
+                fields={def.fields}
+                values={values}
+                onChange={(k, v) =>
+                  setValues((p) => ({ ...p, [k]: v }))
+                }
+              />
+            </div>
+          )}
+        </div>
+      )}
+
+      {error && <p style={{ color: "var(--red)", margin: 0 }}>{error}</p>}
+
+      <label style={{ display: "block" }}>
+        <span className="mono-label">Note to contributor (optional)</span>
+        <div style={{ marginTop: 6 }}>
+          <textarea
+            className="ipt"
+            rows={2}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="Included in the update email, if they opted in."
+          />
+        </div>
+      </label>
+
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        {sub.op !== "remove" &&
+          (!modifying ? (
+            <button
+              type="button"
+              className="btn"
+              disabled={pending}
+              onClick={() => setModifying(true)}
+            >
+              Modify…
+            </button>
+          ) : (
+            <>
+              <button
+                type="button"
+                className="btn btn-primary"
+                disabled={pending}
+                onClick={() => run("modify_accept")}
+              >
+                {pending ? "Saving…" : "Save changes & publish"}
+              </button>
+              <button
+                type="button"
+                className="btn btn-ghost"
+                disabled={pending}
+                onClick={() => setModifying(false)}
+              >
+                Cancel edit
+              </button>
+            </>
+          ))}
+        {!modifying && (
+          <button
+            type="button"
+            className="btn btn-primary"
+            disabled={pending}
+            onClick={() => run("accept")}
+          >
+            {pending
+              ? "Working…"
+              : sub.op === "remove"
+                ? "Approve removal"
+                : "Accept"}
+          </button>
+        )}
+        {!modifying && (
+          <button
+            type="button"
+            className="btn btn-ghost"
+            disabled={pending}
+            onClick={() => run("reject")}
+            style={{ color: "var(--red)" }}
+          >
+            Reject
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function PayloadPreview({
+  def,
+  values,
+  muted = false,
+}: {
+  def: ProposalTypeDef;
+  values: Record<string, string>;
+  muted?: boolean;
+}) {
+  return (
+    <div
+      className="card"
+      style={{ padding: "12px 14px", marginTop: 6, opacity: muted ? 0.7 : 1 }}
+    >
+      {def.fields.map((f) => {
+        const v = values[f.key];
+        if (v === undefined || v === "") return null;
+        return (
+          <div
+            key={f.key}
+            style={{ display: "flex", gap: 8, marginBottom: 4 }}
+          >
+            <span
+              className="mono-sm"
+              style={{ minWidth: 110, color: "var(--tx-3)", flexShrink: 0 }}
+            >
+              {f.label}
+            </span>
+            <span className="body-txt" style={{ margin: 0 }}>
+              {f.kind === "boolean" ? (v === "true" ? "Yes" : "No") : v}
+            </span>
+          </div>
+        );
+      })}
     </div>
   );
 }

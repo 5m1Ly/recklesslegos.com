@@ -4,63 +4,137 @@ import { Footer } from "@/components/footer";
 import { Icons } from "@/components/icons";
 import { Nav } from "@/components/nav";
 import { TimelineView } from "@/components/timeline-view";
+import { prisma } from "@/lib/db";
 import { getTimelineEntries } from "@/lib/timeline";
 
 export default async function HomePage() {
-  const entries = await getTimelineEntries();
+  // Derive every count from real data so the homepage stays in sync with the
+  // archive (and with newly-accepted proposals) instead of hardcoded numbers.
+  const [
+    entries,
+    videoCount,
+    documentCount,
+    socialCount,
+    bodycamCount,
+    personCount,
+    platformGroups,
+    recentVideos,
+    recentDocs,
+    recentSocial,
+  ] = await Promise.all([
+    getTimelineEntries(),
+    prisma.video.count(),
+    prisma.document.count(),
+    prisma.socialPost.count(),
+    prisma.bodycam.count(),
+    prisma.person.count(),
+    prisma.socialPost.groupBy({ by: ["platform"] }),
+    prisma.video.findMany({
+      orderBy: { date: "desc" },
+      take: 3,
+      select: { title: true, source: true, date: true },
+    }),
+    prisma.document.findMany({
+      orderBy: { date: "desc" },
+      take: 3,
+      select: { title: true, source: true, date: true },
+    }),
+    prisma.socialPost.findMany({
+      orderBy: { date: "desc" },
+      take: 3,
+      select: { author: true, platform: true, date: true },
+    }),
+  ]);
+
+  const timelineCount = entries.length;
+  const platformCount = platformGroups.length;
+  const plural = (n: number, word: string) =>
+    `${n} ${word}${n === 1 ? "" : "s"}`;
 
   const stats = [
-    { n: "9", label: "Videos archived", x: "2 channels + AFPD" },
-    { n: "5", label: "Documents", x: "linked sources" },
-    { n: "14", label: "Timeline events", x: "2024–present" },
-    { n: "8", label: "Social accounts", x: "5 platforms" },
-    { n: "1", label: "Bodycam release", x: "Dropbox (AFPD)" },
-    { n: "5", label: "People involved", x: "public roles" },
+    {
+      n: String(videoCount),
+      label: "Videos archived",
+      x: "creator, official & coverage",
+    },
+    { n: String(documentCount), label: "Documents", x: "linked sources" },
+    {
+      n: String(timelineCount),
+      label: "Timeline events",
+      x: "community-sourced",
+    },
+    {
+      n: String(socialCount),
+      label: "Social posts",
+      x: plural(platformCount, "platform"),
+    },
+    {
+      n: String(bodycamCount),
+      label: bodycamCount === 1 ? "Bodycam release" : "Bodycam releases",
+      x: "AFPD footage",
+    },
+    { n: String(personCount), label: "People involved", x: "public roles" },
   ];
 
   const quickNav: [string, string, string, string][] = [
     [
       "videos",
       "Videos",
-      "9 items",
+      plural(videoCount, "item"),
       "Reckless Ben's videos, AFPD footage, and more.",
     ],
-    ["bodycam", "Bodycam", "1 release", "AFPD footage released via Dropbox."],
+    [
+      "bodycam",
+      "Bodycam",
+      plural(bodycamCount, "release"),
+      "AFPD footage released via Dropbox.",
+    ],
     [
       "documents",
       "Documents",
-      "5 records",
+      plural(documentCount, "record"),
       "GoFundMe, advocacy site, Wikipedia, and more.",
     ],
     [
       "social",
       "Social",
-      "8 accounts",
-      "Real social accounts across five platforms.",
+      plural(socialCount, "post"),
+      "Real social posts across the platforms.",
     ],
-    ["people", "People", "5 profiles", "Public roles of everyone involved."],
+    [
+      "people",
+      "People",
+      plural(personCount, "profile"),
+      "Public roles of everyone involved.",
+    ],
   ];
 
+  // Most recently dated items across types — reflects real, current content.
   const latestAdditions = [
-    {
-      tag: "video",
-      t: "American Fork PD — official incident video",
-      s: "American Fork Police · YouTube",
+    ...recentVideos.map((v) => ({
+      tag: "video" as const,
+      t: v.title,
+      s: v.source,
+      date: v.date,
       href: "/videos",
-    },
-    {
-      tag: "document",
-      t: "Wikipedia — Bricks & Minifigs–Reckless Ben controversy",
-      s: "Wikipedia · reference",
+    })),
+    ...recentDocs.map((d) => ({
+      tag: "document" as const,
+      t: d.title,
+      s: d.source,
+      date: d.date,
       href: "/documents",
-    },
-    {
-      tag: "document",
-      t: "GoFundMe — Help Bryan Recover His LEGO Collection",
-      s: "GoFundMe · fundraiser",
-      href: "/documents",
-    },
-  ];
+    })),
+    ...recentSocial.map((sp) => ({
+      tag: "social" as const,
+      t: `${sp.author} on ${sp.platform}`,
+      s: sp.platform,
+      date: sp.date,
+      href: "/social",
+    })),
+  ]
+    .sort((a, b) => b.date.localeCompare(a.date))
+    .slice(0, 3);
 
   return (
     <div>
@@ -125,7 +199,7 @@ export default async function HomePage() {
                 position: "relative",
                 minHeight: 480,
                 display: "flex",
-				flexDirection: "column",
+                flexDirection: "column",
                 alignItems: "center",
                 padding: 28,
               }}
@@ -141,10 +215,9 @@ export default async function HomePage() {
                 }}
               >
                 <iframe
-                  src="https://www.youtube.com/embed/5H714qko9aY"
-                  title="Featured · case explainer video"
+                  src="https://www.youtube.com/embed/HH09tltEw1U?si=JYoH9fd_6MAEaUJT"
+                  title="YouTube video player"
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
                   style={{
                     position: "absolute",
                     inset: 0,

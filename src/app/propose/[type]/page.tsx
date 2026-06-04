@@ -7,7 +7,7 @@ import { prisma } from "@/lib/db";
 import {
   isProposalType,
   PROPOSAL_TYPES,
-  type ProposalTypeDef,
+  rowToValues,
 } from "@/lib/proposal-types";
 import { loadContentRow } from "@/lib/proposals";
 import type { SubmissionOp } from "@/lib/types";
@@ -18,22 +18,6 @@ const OP_TITLES: Record<SubmissionOp, string> = {
   edit: "Propose an edit",
   remove: "Propose a removal",
 };
-
-/** Map a content row to a string-keyed record for the form. */
-function toStringValues(
-  def: ProposalTypeDef,
-  row: Record<string, unknown>,
-): Record<string, string> {
-  const out: Record<string, string> = {};
-  for (const f of def.fields) {
-    const v = row[f.key];
-    if (v == null) out[f.key] = "";
-    else if (typeof v === "boolean") out[f.key] = v ? "true" : "false";
-    else if (Array.isArray(v)) out[f.key] = v.join(", ");
-    else out[f.key] = String(v);
-  }
-  return out;
-}
 
 export default async function ProposePage({
   params,
@@ -59,7 +43,7 @@ export default async function ProposePage({
     if (row) {
       targetId = id;
       targetLabel = def.labelOf(row);
-      initial = toStringValues(def, row);
+      initial = rowToValues(def, row);
     } else {
       // Requested item is gone — fall back to a fresh addition.
       op = "add";
@@ -80,7 +64,10 @@ export default async function ProposePage({
           title={`${OP_TITLES[op]}: ${def.label.toLowerCase()}`}
           sub="You'll verify your email, then a moderator reviews this before it goes live."
         />
-        <div className="wrap section-sm" style={{ paddingTop: 8, maxWidth: 760 }}>
+        <div
+          className="wrap section-sm"
+          style={{ paddingTop: 8, maxWidth: 760 }}
+        >
           <ProposeClient
             type={type}
             op={op}

@@ -44,6 +44,9 @@ export function Footer() {
               <li>
                 <Link href="/people">People involved</Link>
               </li>
+              <li>
+                <Link href="/contributors">Contributors</Link>
+              </li>
             </ul>
           </div>
           <div>

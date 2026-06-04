@@ -16,8 +16,8 @@ import { sendSubmissionUpdate, sendVerifyCode } from "@/lib/mail";
 import {
   applyProposal,
   isProposalType,
-  type ProposalType,
   PROPOSAL_TYPES,
+  type ProposalType,
   validateProposal,
 } from "@/lib/proposals";
 import { validateRefs } from "@/lib/timeline";
@@ -265,7 +265,8 @@ export async function decideSubmission(
     if (!isProposalType(sub.contentType))
       return { ok: false, error: "Unknown content type." };
     const type: ProposalType = sub.contentType;
-    const useEdits = action === "modify_accept" && !!edits && "payload" in edits;
+    const useEdits =
+      action === "modify_accept" && !!edits && "payload" in edits;
     const payload = useEdits
       ? (edits as ContentEdits).payload
       : asPayload(sub.payload);

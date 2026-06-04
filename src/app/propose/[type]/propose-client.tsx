@@ -60,8 +60,7 @@ export function ProposeClient({
   const [pending, startTransition] = useTransition();
 
   const isRemove = op === "remove";
-  const setVal = (k: string, v: string) =>
-    setValues((p) => ({ ...p, [k]: v }));
+  const setVal = (k: string, v: string) => setValues((p) => ({ ...p, [k]: v }));
 
   const composeValid =
     isRemove ||
@@ -250,7 +249,12 @@ export function ProposeClient({
           </Field>
 
           <label
-            style={{ display: "flex", gap: 10, alignItems: "center", cursor: "pointer" }}
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              cursor: "pointer",
+            }}
           >
             <input
               type="checkbox"
@@ -339,7 +343,12 @@ export function ProposeClient({
                     />
                   </Field>
                   <label
-                    style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "flex-start",
+                      cursor: "pointer",
+                    }}
                   >
                     <input
                       type="checkbox"
@@ -353,7 +362,12 @@ export function ProposeClient({
                     </span>
                   </label>
                   <label
-                    style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "flex-start",
+                      cursor: "pointer",
+                    }}
                   >
                     <input
                       type="checkbox"

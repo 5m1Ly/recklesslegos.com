@@ -65,7 +65,9 @@ export async function applyProposal(
         url: nurl(p.url),
       };
       if (op === "add")
-        await tx.video.create({ data: { id: genId("v"), views: "—", ...data } });
+        await tx.video.create({
+          data: { id: genId("v"), views: "—", ...data },
+        });
       else if (targetId)
         await tx.video.update({ where: { id: targetId }, data });
       return;

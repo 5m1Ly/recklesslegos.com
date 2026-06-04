@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState, useTransition } from "react";
+import { getConsentStatus, recordConsent } from "@/app/propose/actions";
 import { actionErrorMessage } from "@/lib/stale-action";
 import {
   fmtDate,
@@ -10,10 +11,6 @@ import {
   type RefType,
   type SubmissionOp,
 } from "@/lib/types";
-import {
-  getConsentStatus,
-  recordConsent,
-} from "@/app/propose/actions";
 import {
   finalizeSubmission,
   sendContribCode,
@@ -548,7 +545,12 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
                     />
                   </Field>
                   <label
-                    style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "flex-start",
+                      cursor: "pointer",
+                    }}
                   >
                     <input
                       type="checkbox"
@@ -562,7 +564,12 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
                     </span>
                   </label>
                   <label
-                    style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}
+                    style={{
+                      display: "flex",
+                      gap: 10,
+                      alignItems: "flex-start",
+                      cursor: "pointer",
+                    }}
                   >
                     <input
                       type="checkbox"

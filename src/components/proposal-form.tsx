@@ -41,7 +41,12 @@ function FieldInput({
   if (f.kind === "boolean") {
     return (
       <label
-        style={{ display: "flex", gap: 10, alignItems: "center", cursor: "pointer" }}
+        style={{
+          display: "flex",
+          gap: 10,
+          alignItems: "center",
+          cursor: "pointer",
+        }}
       >
         <input
           type="checkbox"

@@ -376,7 +376,12 @@ function ContentCard({
       style={{ display: "flex", flexDirection: "column", gap: 14 }}
     >
       <div
-        style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          flexWrap: "wrap",
+        }}
       >
         <span className="tag solid">
           {CONTENT_OP_LABEL[sub.op]} · {def.label}
@@ -422,9 +427,7 @@ function ContentCard({
               <ProposalFields
                 fields={def.fields}
                 values={values}
-                onChange={(k, v) =>
-                  setValues((p) => ({ ...p, [k]: v }))
-                }
+                onChange={(k, v) => setValues((p) => ({ ...p, [k]: v }))}
               />
             </div>
           )}
@@ -525,10 +528,7 @@ function PayloadPreview({
         const v = values[f.key];
         if (v === undefined || v === "") return null;
         return (
-          <div
-            key={f.key}
-            style={{ display: "flex", gap: 8, marginBottom: 4 }}
-          >
+          <div key={f.key} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
             <span
               className="mono-sm"
               style={{ minWidth: 110, color: "var(--tx-3)", flexShrink: 0 }}

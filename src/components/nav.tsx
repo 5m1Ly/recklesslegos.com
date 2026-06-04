@@ -23,6 +23,14 @@ export function Nav() {
     <header className="nav">
       <div className="wrap-wide nav-inner">
         <Link href="/" className="brand">
+          {/* biome-ignore lint/performance/noImgElement: small static SVG logo */}
+          <img
+            src="/recklessbricks-icon.svg"
+            alt=""
+            className="brand-logo"
+            width={26}
+            height={26}
+          />
           <span className="mark">
             Reckless<b>Bricks</b>
           </span>

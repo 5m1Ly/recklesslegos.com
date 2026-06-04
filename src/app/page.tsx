@@ -97,7 +97,7 @@ export default async function HomePage() {
                 <em style={{ fontStyle: "italic", color: "var(--blue)" }}>
                   Reckless&nbsp;Ben
                 </em>{" "}
-                &amp; Bricks and Minifigs community archive.
+                &amp;<br/>Bricks and Minifigs<br/>community archive.
               </h1>
               <p className="lede" style={{ maxWidth: 540, marginBottom: 30 }}>
                 A centralized archive of the publicly available videos,
@@ -153,7 +153,7 @@ export default async function HomePage() {
         </section>
 
         {/* STATS */}
-        <section className="wrap-wide" style={{ padding: "40px 0" }}>
+        <section className="wrap-wide" style={{ paddingBlock: "40px" }}>
           <div className="stat-grid">
             {stats.map((s) => (
               <div className="stat-cell" key={s.label}>

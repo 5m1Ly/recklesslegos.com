@@ -30,6 +30,16 @@ export const metadata: Metadata = {
   title: "RecklessBricks — Cedar Hollow / Cogwheel Archive",
   description:
     "A centralized archive of the publicly available videos, documents, social-media posts, police footage, and developments surrounding the Cedar Hollow / Cogwheel Collectibles incident.",
+  icons: {
+    icon: [
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/icon-16.png", sizes: "16x16", type: "image/png" },
+      { url: "/icon-32.png", sizes: "32x32", type: "image/png" },
+      { url: "/icon-64.png", sizes: "64x64", type: "image/png" },
+    ],
+    apple: [{ url: "/icon-192.png", sizes: "192x192", type: "image/png" }],
+    shortcut: ["/favicon.png"],
+  },
 };
 
 export default function RootLayout({

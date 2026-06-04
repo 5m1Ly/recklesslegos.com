@@ -105,11 +105,13 @@
   margin: 0 auto;
   padding: 0 32px;
 }
+/* Use padding-block (not the `padding` shorthand) so these don't clobber the
+   horizontal padding from .wrap / .wrap-wide when combined on one element. */
 .section {
-  padding: 72px 0;
+  padding-block: 72px;
 }
 .section-sm {
-  padding: 48px 0;
+  padding-block: 48px;
 }
 .divider {
   height: 1px;
@@ -436,8 +438,14 @@
 }
 .brand {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   gap: 9px;
+}
+.brand-logo {
+  display: block;
+  width: 26px;
+  height: 26px;
+  flex-shrink: 0;
 }
 .brand .mark {
   font-family: var(--serif);

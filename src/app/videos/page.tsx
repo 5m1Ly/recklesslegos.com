@@ -23,7 +23,13 @@ export default async function VideosPage() {
           }
           title="Video archive"
           sub="Every video in the record, grouped by source — from the creator's own uploads to official footage, corporate statements, and outside coverage. Demo embeds are placeholders."
-        />
+        >
+          <div style={{ marginTop: 18 }}>
+            <Link href="/propose/video?op=add" className="btn btn-ghost">
+              + Propose an addition
+            </Link>
+          </div>
+        </PageHead>
         <VideosClient videos={videos} />
       </main>
       <Footer />

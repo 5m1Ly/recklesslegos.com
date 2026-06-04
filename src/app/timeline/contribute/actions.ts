@@ -9,6 +9,7 @@ import {
   isWellFormedCode,
   MAX_CODE_ATTEMPTS,
 } from "@/lib/codes";
+import { hashEmail } from "@/lib/contributors";
 import { prisma } from "@/lib/db";
 import { sendAdminSubmissionNotice, sendVerifyCode } from "@/lib/mail";
 import { validateRefs } from "@/lib/timeline";
@@ -119,6 +120,7 @@ export async function sendContribCode(
     where: { id: submissionId },
     data: {
       email: email.trim().toLowerCase(),
+      emailHash: hashEmail(email),
       wantsUpdates,
       emailVerified: false,
       codeHash: hashCode(code),

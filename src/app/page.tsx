@@ -86,9 +86,6 @@ export default async function HomePage() {
                 justifyContent: "center",
               }}
             >
-              <div className="eyebrow line" style={{ marginBottom: 24 }}>
-                Independent case archive · est. 2024
-              </div>
               <h1
                 className="h-display"
                 style={{ fontSize: 56, marginBottom: 22 }}
@@ -103,6 +100,9 @@ export default async function HomePage() {
                 <br />
                 Community Archive.
               </h1>
+              <div className="eyebrow line" style={{ marginBottom: 24 }}>
+                community case archive · est. 2026
+              </div>
               <p className="lede" style={{ maxWidth: 540, marginBottom: 30 }}>
                 A centralized archive of the publicly available videos,
                 documents, social-media posts, police footage, and developments
@@ -129,6 +129,7 @@ export default async function HomePage() {
                 padding: 28,
               }}
             >
+              <h2>An unbiased explanatory video from a lawyer.</h2>
               <div
                 style={{
                   position: "relative",
@@ -138,7 +139,6 @@ export default async function HomePage() {
                   overflow: "hidden",
                 }}
               >
-				<h2>An unbiased explanatory video from a lawyer.</h2>
                 <iframe
                   src="https://www.youtube.com/embed/5H714qko9aY"
                   title="Featured · case explainer video"

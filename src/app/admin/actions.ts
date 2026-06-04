@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import type { Prisma } from "@/generated/prisma/client";
 import { createSession, destroySession, requireAdmin } from "@/lib/admin-auth";
 import {
   codeExpiry,
@@ -12,8 +13,22 @@ import {
 } from "@/lib/codes";
 import { prisma } from "@/lib/db";
 import { sendSubmissionUpdate, sendVerifyCode } from "@/lib/mail";
+import {
+  applyProposal,
+  isProposalType,
+  type ProposalType,
+  PROPOSAL_TYPES,
+  validateProposal,
+} from "@/lib/proposals";
 import { validateRefs } from "@/lib/timeline";
-import type { RefType } from "@/lib/types";
+import type { RefType, SubmissionOp } from "@/lib/types";
+
+/** Read a Submission.payload Json value as a plain object. */
+function asPayload(v: unknown): Record<string, unknown> {
+  return v && typeof v === "object" && !Array.isArray(v)
+    ? (v as Record<string, unknown>)
+    : {};
+}
 
 export interface ActionResult {
   ok: boolean;
@@ -138,12 +153,17 @@ export async function removeAdmin(email: string): Promise<ActionResult> {
 
 export type DecisionAction = "accept" | "modify_accept" | "reject";
 
+// Timeline edits keep their dedicated shape; content edits carry a generic
+// per-type payload (see src/lib/proposals.ts).
 export interface DecisionEdits {
   date: string;
   title: string;
   description: string;
   ongoing: boolean;
   refs: { refType: RefType; refId: string }[];
+}
+export interface ContentEdits {
+  payload: Record<string, unknown>;
 }
 
 interface SubmissionPayload {
@@ -164,11 +184,44 @@ function refsFromJson(value: unknown): { refType: RefType; refId: string }[] {
     .map((r) => ({ refType: r.refType, refId: r.refId }));
 }
 
+/** Human label for the contributor update email. */
+function submissionLabel(sub: {
+  contentType: string;
+  title: string | null;
+  payload: unknown;
+}): string {
+  if (sub.contentType !== "timeline" && isProposalType(sub.contentType))
+    return PROPOSAL_TYPES[sub.contentType].labelOf(asPayload(sub.payload));
+  return sub.title ?? "your submission";
+}
+
+/**
+ * Purge the stored email once a decision is made, unless the contributor
+ * consented to storage. Runs AFTER any update email is sent (which reads the
+ * email from the in-memory record). Legacy rows without an emailHash are left
+ * untouched.
+ */
+async function purgeEmailIfDeclined(sub: {
+  id: string;
+  email: string;
+  emailHash: string | null;
+}): Promise<void> {
+  if (!sub.email || !sub.emailHash) return;
+  const contributor = await prisma.contributor.findUnique({
+    where: { emailHash: sub.emailHash },
+  });
+  if (!contributor?.consentStoreEmail)
+    await prisma.submission.update({
+      where: { id: sub.id },
+      data: { email: "" },
+    });
+}
+
 /** Accept (optionally with edits) or reject a pending submission. */
 export async function decideSubmission(
   submissionId: string,
   action: DecisionAction,
-  edits: DecisionEdits | null,
+  edits: DecisionEdits | ContentEdits | null,
   note: string | null,
 ): Promise<ActionResult> {
   await requireAdmin();
@@ -181,38 +234,89 @@ export async function decideSubmission(
     return { ok: false, error: "This submission was already decided." };
 
   const adminNote = note?.trim() || null;
+  const op = sub.op as SubmissionOp;
+  const isContent = sub.contentType !== "timeline";
+  const label = submissionLabel(sub);
 
+  const revalidateAll = () => {
+    revalidatePath("/admin");
+    revalidatePath("/");
+    revalidatePath("/contributors");
+    if (isContent && isProposalType(sub.contentType))
+      revalidatePath(PROPOSAL_TYPES[sub.contentType].basePath);
+    else revalidatePath("/timeline");
+  };
+
+  // ----- reject (any content type) -----
   if (action === "reject") {
     await prisma.submission.update({
       where: { id: submissionId },
       data: { status: "rejected", decidedAt: new Date(), adminNote },
     });
     if (sub.wantsUpdates)
-      await sendSubmissionUpdate(
-        sub.email,
-        "rejected",
-        sub.title ?? "your submission",
-        adminNote,
-      );
-    revalidatePath("/admin");
-    revalidatePath("/timeline");
-    revalidatePath("/");
+      await sendSubmissionUpdate(sub.email, "rejected", label, adminNote);
+    await purgeEmailIfDeclined(sub);
+    revalidateAll();
     return { ok: true };
   }
 
-  // accept / modify_accept
-  const useEdits = action === "modify_accept" && edits;
+  // ----- content-type accept / modify_accept -----
+  if (isContent) {
+    if (!isProposalType(sub.contentType))
+      return { ok: false, error: "Unknown content type." };
+    const type: ProposalType = sub.contentType;
+    const useEdits = action === "modify_accept" && !!edits && "payload" in edits;
+    const payload = useEdits
+      ? (edits as ContentEdits).payload
+      : asPayload(sub.payload);
 
-  // Build the effective payload for add/edit operations.
+    if (op === "remove") {
+      if (!sub.targetId) return { ok: false, error: "No target to remove." };
+    } else {
+      const err = validateProposal(type, op, payload);
+      if (err) return { ok: false, error: err };
+    }
+
+    await prisma.$transaction(async (tx) => {
+      await applyProposal(tx, type, op, sub.targetId, payload);
+      await tx.submission.update({
+        where: { id: submissionId },
+        data: {
+          status: "accepted",
+          decidedAt: new Date(),
+          adminNote,
+          ...(useEdits ? { payload: payload as Prisma.InputJsonValue } : {}),
+        },
+      });
+    });
+
+    if (sub.wantsUpdates)
+      await sendSubmissionUpdate(
+        sub.email,
+        useEdits ? "modified" : "accepted",
+        label,
+        adminNote,
+      );
+    await purgeEmailIfDeclined(sub);
+    revalidateAll();
+    return { ok: true };
+  }
+
+  // ----- timeline accept / modify_accept (original behavior) -----
+  const tEdits =
+    action === "modify_accept" && edits && !("payload" in edits)
+      ? (edits as DecisionEdits)
+      : null;
+
   let payload: SubmissionPayload | null = null;
-  if (sub.op !== "remove") {
-    payload = useEdits
+  if (op !== "remove") {
+    payload = tEdits
       ? {
-          date: edits.date,
-          title: edits.title,
-          description: edits.description,
-          ongoing: edits.ongoing,
-          refs: edits.refs,
+          date: tEdits.date,
+          title: tEdits.title,
+          description: tEdits.description,
+          ongoing: tEdits.ongoing,
+          refs: tEdits.refs,
         }
       : {
           date: sub.date ?? "",
@@ -235,7 +339,7 @@ export async function decideSubmission(
   }
 
   await prisma.$transaction(async (tx) => {
-    if (sub.op === "add" && payload) {
+    if (op === "add" && payload) {
       await tx.timelineEntry.create({
         data: {
           date: payload.date,
@@ -245,7 +349,7 @@ export async function decideSubmission(
           refs: { create: payload.refs },
         },
       });
-    } else if (sub.op === "edit" && payload && sub.targetId) {
+    } else if (op === "edit" && payload && sub.targetId) {
       await tx.timelineRef.deleteMany({ where: { entryId: sub.targetId } });
       await tx.timelineEntry.update({
         where: { id: sub.targetId },
@@ -257,7 +361,7 @@ export async function decideSubmission(
           refs: { create: payload.refs },
         },
       });
-    } else if (sub.op === "remove" && sub.targetId) {
+    } else if (op === "remove" && sub.targetId) {
       await tx.timelineEntry.deleteMany({ where: { id: sub.targetId } });
     }
 
@@ -267,14 +371,13 @@ export async function decideSubmission(
         status: "accepted",
         decidedAt: new Date(),
         adminNote,
-        // Persist any admin edits onto the submission record for the audit trail.
-        ...(useEdits
+        ...(tEdits
           ? {
-              date: edits.date,
-              title: edits.title,
-              description: edits.description,
-              ongoing: edits.ongoing,
-              refs: edits.refs,
+              date: tEdits.date,
+              title: tEdits.title,
+              description: tEdits.description,
+              ongoing: tEdits.ongoing,
+              refs: tEdits.refs,
             }
           : {}),
       },
@@ -284,13 +387,11 @@ export async function decideSubmission(
   if (sub.wantsUpdates)
     await sendSubmissionUpdate(
       sub.email,
-      useEdits ? "modified" : "accepted",
+      tEdits ? "modified" : "accepted",
       payload?.title ?? sub.title ?? "your submission",
       adminNote,
     );
-
-  revalidatePath("/admin");
-  revalidatePath("/timeline");
-  revalidatePath("/");
+  await purgeEmailIfDeclined(sub);
+  revalidateAll();
   return { ok: true };
 }

@@ -38,7 +38,13 @@ export default async function SocialPage() {
           }
           title="Social media archive"
           sub="Public posts from the involved parties across five platforms, plus third-party video coverage of the controversy."
-        />
+        >
+          <div style={{ marginTop: 18 }}>
+            <Link href="/propose/social?op=add" className="btn btn-ghost">
+              + Propose an addition
+            </Link>
+          </div>
+        </PageHead>
         <SocialClient
           social={social}
           platforms={platforms}

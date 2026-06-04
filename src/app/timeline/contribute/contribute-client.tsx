@@ -11,6 +11,10 @@ import {
   type SubmissionOp,
 } from "@/lib/types";
 import {
+  getConsentStatus,
+  recordConsent,
+} from "@/app/propose/actions";
+import {
   finalizeSubmission,
   sendContribCode,
   startSubmission,
@@ -57,6 +61,12 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
   const [codeSent, setCodeSent] = useState(false);
   const [code, setCode] = useState("");
   const [verified, setVerified] = useState(false);
+
+  // Consent (only asked when the email isn't already on file).
+  const [consentOnFile, setConsentOnFile] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [consentStore, setConsentStore] = useState(false);
+  const [consentList, setConsentList] = useState(false);
 
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
@@ -137,6 +147,8 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     if (!submissionId) return;
     startTransition(async () => {
       try {
+        const status = await getConsentStatus(email);
+        setConsentOnFile(status.onFile);
         const res = await sendContribCode(submissionId, email, wantsUpdates);
         if (!res.ok) {
           setError(res.error ?? "Couldn't send the code.");
@@ -173,6 +185,18 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     if (!submissionId) return;
     startTransition(async () => {
       try {
+        if (!consentOnFile) {
+          const cr = await recordConsent({
+            submissionId,
+            displayName,
+            consentStoreEmail: consentStore,
+            consentListPublicly: consentList,
+          });
+          if (!cr.ok) {
+            setError(cr.error ?? "Couldn't record your choices.");
+            return;
+          }
+        }
         const res = await finalizeSubmission(submissionId);
         if (!res.ok) {
           setError(res.error ?? "Couldn't submit.");
@@ -504,6 +528,55 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
                   style={{ letterSpacing: 6, fontFamily: "var(--mono)" }}
                 />
               </Field>
+              {verified && !consentOnFile && (
+                <div
+                  className="card card-pad"
+                  style={{ display: "flex", flexDirection: "column", gap: 14 }}
+                >
+                  <span className="mono-label">Before you submit</span>
+                  <Field
+                    label="Display name"
+                    hint="Optional · shown if you choose to be listed"
+                  >
+                    <input
+                      type="text"
+                      className="ipt"
+                      value={displayName}
+                      maxLength={80}
+                      onChange={(e) => setDisplayName(e.target.value)}
+                      placeholder="How you'd like to be credited"
+                    />
+                  </Field>
+                  <label
+                    style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={consentStore}
+                      onChange={(e) => setConsentStore(e.target.checked)}
+                    />
+                    <span className="body-txt" style={{ margin: 0 }}>
+                      You may store my email address in your database. If
+                      unchecked, we only use it to verify and notify you, then
+                      delete it once a moderator decides.
+                    </span>
+                  </label>
+                  <label
+                    style={{ display: "flex", gap: 10, alignItems: "flex-start", cursor: "pointer" }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={consentList}
+                      onChange={(e) => setConsentList(e.target.checked)}
+                    />
+                    <span className="body-txt" style={{ margin: 0 }}>
+                      List me publicly on the contributors page (shown as your
+                      display name and a redacted email).
+                    </span>
+                  </label>
+                </div>
+              )}
+
               <div style={{ display: "flex", gap: 12, flexWrap: "wrap" }}>
                 {!verified && (
                   <button

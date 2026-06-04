@@ -42,6 +42,11 @@ export default async function BodycamPage() {
               American Fork, Utah
             </span>
           </div>
+          <div style={{ marginTop: 18 }}>
+            <Link href="/propose/bodycam?op=add" className="btn btn-ghost">
+              + Propose an addition
+            </Link>
+          </div>
         </PageHead>
         <BodycamClient bodycam={bodycam} />
       </main>

@@ -37,7 +37,13 @@ export default async function DocumentsPage() {
           }
           title="Document archive"
           sub="Court filings, police reports, FOIA releases, correspondence, and public records — each OCR-indexed, tagged, and linked to the events it documents."
-        />
+        >
+          <div style={{ marginTop: 18 }}>
+            <Link href="/propose/document?op=add" className="btn btn-ghost">
+              + Propose an addition
+            </Link>
+          </div>
+        </PageHead>
         <DocumentsClient documents={documents} docTypes={docTypes} />
       </main>
       <Footer />

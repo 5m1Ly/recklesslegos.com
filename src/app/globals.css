@@ -850,6 +850,9 @@ textarea.ipt {
   .profile-layout {
     grid-template-columns: 1fr;
   }
+  .social-layout {
+    grid-template-columns: 1fr;
+  }
   .quicknav-grid {
     grid-template-columns: repeat(2, 1fr);
   }

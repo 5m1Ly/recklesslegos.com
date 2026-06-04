@@ -13,15 +13,28 @@ async function main() {
   console.log("Seeding database…");
 
   await prisma.eventPerson.deleteMany();
-  await prisma.socialPost.deleteMany();
-  // Only delete seed-managed records; preserve bc-* and pdf-* added by media:download
+  // Preserve ext-* posts/videos added by realtime ingestion (src/lib/ingest.ts)
+  await prisma.socialPost.deleteMany({
+    where: { NOT: { id: { startsWith: "ext-" } } },
+  });
+  // Preserve pdf-*/bc-* (media:download) and ext-* (scraped, src/lib/scrape.ts)
   await prisma.document.deleteMany({
-    where: { NOT: { id: { startsWith: "pdf-" } } },
+    where: {
+      NOT: {
+        OR: [{ id: { startsWith: "pdf-" } }, { id: { startsWith: "ext-" } }],
+      },
+    },
   });
   await prisma.bodycam.deleteMany({
-    where: { NOT: { id: { startsWith: "bc-" } } },
+    where: {
+      NOT: {
+        OR: [{ id: { startsWith: "bc-" } }, { id: { startsWith: "ext-" } }],
+      },
+    },
   });
-  await prisma.video.deleteMany();
+  await prisma.video.deleteMany({
+    where: { NOT: { id: { startsWith: "ext-" } } },
+  });
   await prisma.event.deleteMany();
   await prisma.person.deleteMany();
 

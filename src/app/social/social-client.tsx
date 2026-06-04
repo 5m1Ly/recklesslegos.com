@@ -232,9 +232,17 @@ export function SocialClient({
 
   return (
     <div className="wrap-wide section-sm" style={{ paddingTop: 24 }}>
-      {/* Coverage videos section */}
-      {coverageVideos.length > 0 && (
-        <section style={{ marginBottom: 48 }}>
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "2fr 1fr",
+          gap: 32,
+          alignItems: "start",
+        }}
+        className="social-layout"
+      >
+        {/* Left 2/3 — Coverage & commentary videos */}
+        <section>
           <div
             style={{
               display: "flex",
@@ -256,57 +264,82 @@ export function SocialClient({
               Third-party video coverage of the controversy
             </span>
           </div>
-          <div className="grid-3">
-            {coverageVideos.map((v) => (
-              <CoverageVideoCard key={v.id} v={v} />
+          {coverageVideos.length > 0 ? (
+            <div className="grid-2">
+              {coverageVideos.map((v) => (
+                <CoverageVideoCard key={v.id} v={v} />
+              ))}
+            </div>
+          ) : (
+            <div style={{ padding: "40px 0", color: "var(--tx-3)" }}>
+              No coverage videos yet.
+            </div>
+          )}
+        </section>
+
+        {/* Right 1/3 — Social posts feed */}
+        <aside>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "baseline",
+              gap: 14,
+              marginBottom: 18,
+              paddingBottom: 14,
+              borderBottom: "1px solid var(--line)",
+            }}
+          >
+            <h2 className="h-section" style={{ fontSize: 20 }}>
+              Social posts
+            </h2>
+            <span className="mono-sm tnum">{rows.length}</span>
+          </div>
+
+          <div className="filterbar" style={{ paddingTop: 0 }}>
+            <div className="search-field">
+              <Icons.search />
+              <input
+                value={q}
+                onChange={(e) => setQ(e.target.value)}
+                placeholder="Search posts…"
+              />
+            </div>
+            <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
+              {allPlatforms.map((p) => (
+                <button
+                  key={p}
+                  type="button"
+                  className={`chip ${platform === p ? "on" : ""}`}
+                  onClick={() => setPlatform(p)}
+                >
+                  {p}
+                </button>
+              ))}
+            </div>
+            <div className="grow" />
+            <select
+              className="select"
+              value={sort}
+              onChange={(e) => setSort(e.target.value)}
+            >
+              <option>Newest</option>
+              <option>Oldest</option>
+            </select>
+          </div>
+
+          {/* Single-column feed — the narrow right rail */}
+          <div style={{ display: "grid", gap: 16 }}>
+            {rows.map((s) => (
+              <PostCard key={s.id} s={s} />
             ))}
           </div>
-          <hr className="divider" style={{ marginTop: 40 }} />
-        </section>
-      )}
-
-      {/* Social posts */}
-      <div className="filterbar" style={{ paddingTop: 0 }}>
-        <div className="search-field">
-          <Icons.search />
-          <input
-            value={q}
-            onChange={(e) => setQ(e.target.value)}
-            placeholder="Search posts…"
-          />
-        </div>
-        <div style={{ display: "flex", gap: 7, flexWrap: "wrap" }}>
-          {allPlatforms.map((p) => (
-            <button
-              key={p}
-              type="button"
-              className={`chip ${platform === p ? "on" : ""}`}
-              onClick={() => setPlatform(p)}
-            >
-              {p}
-            </button>
-          ))}
-        </div>
-        <div className="grow" />
-        <select
-          className="select"
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-        >
-          <option>Newest</option>
-          <option>Oldest</option>
-        </select>
+          {rows.length === 0 && (
+            <div style={{ padding: "40px 0", color: "var(--tx-3)" }}>
+              No posts match those filters.
+            </div>
+          )}
+        </aside>
       </div>
-      <div className="grid-3 social-masonry" style={{ alignItems: "start" }}>
-        {rows.map((s) => (
-          <PostCard key={s.id} s={s} />
-        ))}
-      </div>
-      {rows.length === 0 && (
-        <div style={{ padding: "40px 0", color: "var(--tx-3)" }}>
-          No posts match those filters.
-        </div>
-      )}
       <div style={{ height: 30 }} />
     </div>
   );

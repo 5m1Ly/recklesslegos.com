@@ -93,11 +93,11 @@ export default async function HomePage() {
                 className="h-display"
                 style={{ fontSize: 56, marginBottom: 22 }}
               >
-                Tracking the{" "}
+                The{" "}
                 <em style={{ fontStyle: "italic", color: "var(--blue)" }}>
                   Reckless&nbsp;Ben
                 </em>{" "}
-                &amp; Bricks and Minifigs story.
+                &amp; Bricks and Minifigs community archive.
               </h1>
               <p className="lede" style={{ maxWidth: 540, marginBottom: 30 }}>
                 A centralized archive of the publicly available videos,

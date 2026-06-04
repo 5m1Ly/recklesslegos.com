@@ -14,7 +14,7 @@ export function Footer() {
                 fontWeight: 600,
               }}
             >
-              Through<b style={{ color: "var(--blue)" }}>line</b>
+              Reckless<b style={{ color: "var(--blue)" }}>Bricks</b>
             </span>
             <p className="disclaim" style={{ marginTop: 16 }}>
               An independent archive of the Bricks and Minifigs / Reckless Ben

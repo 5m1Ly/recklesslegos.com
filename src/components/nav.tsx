@@ -24,7 +24,7 @@ export function Nav() {
       <div className="wrap-wide nav-inner">
         <Link href="/" className="brand">
           <span className="mark">
-            Reckless<b>bricks</b>
+            Reckless<b>Bricks</b>
           </span>
         </Link>
         <nav className="nav-links">

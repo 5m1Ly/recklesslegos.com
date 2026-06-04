@@ -34,6 +34,15 @@ jobs:
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
           NEXT_PUBLIC_GA_ID=${{ secrets.NEXT_PUBLIC_GA_ID }}
+          NEXT_PUBLIC_SITE_URL=https://recklessbricks.com
+          SMTP_HOST=ssl0.ovh.net
+          SMTP_PORT=465
+          SMTP_SECURE=true
+          SMTP_USER=${{ secrets.SMTP_USER }}
+          SMTP_PASS=${{ secrets.SMTP_PASS }}
+          SMTP_FROM=${{ secrets.SMTP_FROM }}
+          YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
+          CRON_SECRET=${{ secrets.CRON_SECRET }}
           EOF
 
       - name: Generate Prisma client

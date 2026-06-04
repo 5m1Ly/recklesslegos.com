@@ -1,7 +1,7 @@
 import "server-only";
 import nodemailer, { type Transporter } from "nodemailer";
 
-const FROM = process.env.SMTP_FROM ?? "Reckless Legos <no-reply@localhost>";
+const FROM = process.env.SMTP_FROM ?? "RecklessBricks <no-reply@localhost>";
 
 let cached: Transporter | null = null;
 
@@ -41,7 +41,7 @@ function wrap(title: string, body: string): string {
   <h2 style="margin:0 0 12px">${title}</h2>
   ${body}
   <hr style="border:none;border-top:1px solid #eee;margin:24px 0"/>
-  <p style="font-size:12px;color:#888">Reckless Legos archive · This is an automated message.</p>
+  <p style="font-size:12px;color:#888">RecklessBricks archive · This is an automated message.</p>
   </body></html>`;
 }
 

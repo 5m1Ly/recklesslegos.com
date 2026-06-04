@@ -138,6 +138,7 @@ export default async function HomePage() {
                   overflow: "hidden",
                 }}
               >
+				<h2>An unbiased explanatory video from a lawyer.</h2>
                 <iframe
                   src="https://www.youtube.com/embed/5H714qko9aY"
                   title="Featured · case explainer video"

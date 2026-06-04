@@ -138,17 +138,25 @@ model TimelineRef {
   @@index([entryId])
 }
 
-// A proposed change to the timeline, awaiting verification + admin approval.
+// A proposed change to a content item, awaiting verification + admin approval.
+// `contentType` discriminates: "timeline" uses the dedicated columns below;
+// the five content types (video/bodycam/document/social/person) store their
+// fields in `payload`. See src/lib/proposals.ts.
 model Submission {
   id            String    @id @default(cuid())
+  contentType   String    @default("timeline") // timeline | video | bodycam | document | social | person
   op            String // "add" | "edit" | "remove"
-  targetId      String? // TimelineEntry id for edit/remove
+  targetId      String? // TimelineEntry id (timeline) or content row id (other types) for edit/remove
+  // Timeline-specific columns (unused by the other content types):
   date          String?
   title         String?
   description   String?
   ongoing       Boolean   @default(false)
   refs          Json? // [{ refType, refId }]
+  // Type-specific field bag for the five non-timeline content types:
+  payload       Json?
   email         String
+  emailHash     String? // sha256(normalized email); survives email purge for counts/consent lookup
   wantsUpdates  Boolean   @default(false)
   emailVerified Boolean   @default(false)
   codeHash      String?
@@ -158,6 +166,20 @@ model Submission {
   adminNote     String?
   createdAt     DateTime  @default(now())
   decidedAt     DateTime?
+}
+
+// One row per contributor email (keyed by hash so we never retain the plaintext
+// email of someone who declined storage). Records the two consent answers so we
+// only ask once per email. See src/lib/contributors.ts.
+model Contributor {
+  id                  String   @id @default(cuid())
+  emailHash           String   @unique // sha256(normalized email)
+  displayName         String?
+  redactedEmail       String? // stored only when consentListPublicly = true
+  consentStoreEmail   Boolean  @default(false)
+  consentListPublicly Boolean  @default(false)
+  askedAt             DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 }
 
 model AdminUser {

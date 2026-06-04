@@ -1,6 +1,11 @@
+import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Spectral } from "next/font/google";
 import "./globals.css";
+
+// Google Analytics 4 measurement ID (e.g. "G-XXXXXXXXXX"). When unset — local
+// dev, previews — the GA script is omitted entirely.
+const gaId = process.env.NEXT_PUBLIC_GA_ID;
 
 const spectral = Spectral({
   variable: "--font-spectral",
@@ -45,6 +50,7 @@ export default function RootLayout({
       }
     >
       <body>{children}</body>
+      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }

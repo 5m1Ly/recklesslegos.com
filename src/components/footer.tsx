@@ -124,7 +124,7 @@ export function Footer() {
         </div>
         <div className="footer-bottom">
           <span className="copy">
-            © 2025 Throughline Archive · Independent case documentation
+            © 2025 RecklessBricks Archive · Independent case documentation
           </span>
           <span className="mono-sm">
             Not affiliated with any party in this case

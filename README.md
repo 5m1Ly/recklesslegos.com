@@ -1,4 +1,4 @@
-# Throughline
+# RecklessBricks
 
 An independent case archive documenting the Bricks and Minifigs / Reckless Ben controversy — built with Next.js, Prisma, and PostgreSQL.
 

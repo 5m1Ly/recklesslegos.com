@@ -1,12 +1,12 @@
 services:
   postgres:
     image: postgres:18-alpine
-    container_name: throughline_db
+    container_name: recklessbricks_db
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-throughline}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-throughline_dev}
-      POSTGRES_DB: ${POSTGRES_DB:-throughline}
+      POSTGRES_USER: ${POSTGRES_USER:-recklessbricks}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-recklessbricks_dev}
+      POSTGRES_DB: ${POSTGRES_DB:-recklessbricks}
     ports:
       - "${POSTGRES_PORT:-5433}:5432"
     # Postgres 18+ images store data under /var/lib/postgresql (in a
@@ -15,7 +15,7 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-throughline} -d ${POSTGRES_DB:-throughline}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-recklessbricks} -d ${POSTGRES_DB:-recklessbricks}"]
       interval: 5s
       timeout: 5s
       retries: 5

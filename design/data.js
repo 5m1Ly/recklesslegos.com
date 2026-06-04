@@ -1,5 +1,5 @@
 /* ============================================================
-   THROUGHLINE — Fictional case dataset (sample data)
+   RECKLESSBRICKS — Fictional case dataset (sample data)
    Cedar Hollow / Cogwheel Collectibles incident.
    Every name, org, and event here is invented for this demo.
    ============================================================ */

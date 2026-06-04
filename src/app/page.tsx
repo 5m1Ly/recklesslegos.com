@@ -208,7 +208,7 @@ export default async function HomePage() {
                 published their own video.
               </p>
               <p className="body-txt" style={{ marginBottom: 22 }}>
-                Throughline collects what each party has made public — videos,
+                RecklessBricks collects what each party has made public — videos,
                 documents, social accounts, and police footage — and keeps it
                 organized, sourced, and cross-linked.
               </p>

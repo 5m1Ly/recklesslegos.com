@@ -59,7 +59,7 @@ jobs:
 
       # Restart the systemd service that runs the app. The runner user needs
       # passwordless sudo for this one command, e.g. in /etc/sudoers.d/recklesslegos:
-      #   recklesslegos ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart recklesslegos
-      # Adjust the service name to match your unit (recklesslegos.service).
+      #   recklesslegos ALL=(ALL) NOPASSWD: /usr/bin/systemctl restart recklessbricks
+      # Adjust the service name to match your unit (recklessbricks.service).
       - name: Restart app
-        run: sudo systemctl restart recklesslegos
+        run: sudo systemctl restart recklessbricks

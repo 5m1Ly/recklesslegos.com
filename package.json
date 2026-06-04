@@ -1,5 +1,5 @@
 {
-  "name": "recklesslegos.com",
+  "name": "recklessbricks.com",
   "version": "0.1.0",
   "private": true,
   "packageManager": "pnpm@10.33.0",
@@ -13,7 +13,7 @@
     "test": "echo 'No tests configured' && exit 0",
     "db:up": "docker compose up -d",
     "db:down": "docker compose down",
-    "db:wait": "for i in $(seq 1 60); do [ \"$(docker inspect --format='{{.State.Health.Status}}' throughline_db 2>/dev/null)\" = healthy ] && exit 0; sleep 1; done; echo 'Postgres did not become healthy in 60s; recent container logs:' >&2; docker logs --tail 30 throughline_db; exit 1",
+    "db:wait": "for i in $(seq 1 60); do [ \"$(docker inspect --format='{{.State.Health.Status}}' recklessbricks_db 2>/dev/null)\" = healthy ] && exit 0; sleep 1; done; echo 'Postgres did not become healthy in 60s; recent container logs:' >&2; docker logs --tail 30 recklessbricks_db; exit 1",
     "db:push": "prisma migrate dev && prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:admin": "tsx prisma/seed-admin.ts",

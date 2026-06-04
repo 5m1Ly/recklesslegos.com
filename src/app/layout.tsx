@@ -22,7 +22,7 @@ const ibmPlexMono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Throughline — Cedar Hollow / Cogwheel Archive",
+  title: "RecklessBricks — Cedar Hollow / Cogwheel Archive",
   description:
     "A centralized archive of the publicly available videos, documents, social-media posts, police footage, and developments surrounding the Cedar Hollow / Cogwheel Collectibles incident.",
 };

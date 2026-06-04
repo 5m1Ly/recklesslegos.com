@@ -1,16 +1,16 @@
-# systemd unit for the recklesslegos.com Next.js app.
+# systemd unit for the recklessbricks.com Next.js app.
 #
 # Install on the server (as a user with sudo):
-#   sudo cp deploy/recklesslegos.service /etc/systemd/system/recklesslegos.service
+#   sudo cp deploy/recklessbricks.service /etc/systemd/system/recklessbricks.service
 #   sudo systemctl daemon-reload
-#   sudo systemctl enable --now recklesslegos
+#   sudo systemctl enable --now recklessbricks
 #
 # Requires Node.js and pnpm available system-wide for the service user, e.g.:
 #   sudo corepack enable            # provides `pnpm` on PATH
 # Adjust ExecStart's pnpm path to match `command -v pnpm` on the server.
 
 [Unit]
-Description=recklesslegos.com (Next.js)
+Description=recklessbricks.com (Next.js)
 # Postgres runs in Docker via docker-compose, so wait for Docker to be up.
 After=network-online.target docker.service
 Wants=network-online.target docker.service
@@ -21,10 +21,10 @@ User=recklesslegos
 Group=recklesslegos
 
 # The GitHub Actions runner checks the repo out here and builds in place.
-WorkingDirectory=/home/recklesslegos/actions-runner/_work/recklesslegos.com/recklesslegos.com
+WorkingDirectory=/home/recklesslegos/actions-runner/_work/recklessbricks.com/recklessbricks.com
 
 # Load DATABASE_URL and POSTGRES_* (written by the "Write .env" deploy step).
-EnvironmentFile=/home/recklesslegos/actions-runner/_work/recklesslegos.com/recklesslegos.com/.env
+EnvironmentFile=/home/recklesslegos/actions-runner/_work/recklessbricks.com/recklessbricks.com/.env
 Environment=NODE_ENV=production
 Environment=PORT=3000
 Environment=HOSTNAME=0.0.0.0

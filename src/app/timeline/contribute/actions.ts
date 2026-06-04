@@ -10,7 +10,7 @@ import {
   MAX_CODE_ATTEMPTS,
 } from "@/lib/codes";
 import { prisma } from "@/lib/db";
-import { sendVerifyCode } from "@/lib/mail";
+import { sendAdminSubmissionNotice, sendVerifyCode } from "@/lib/mail";
 import { validateRefs } from "@/lib/timeline";
 import type { RefType, SubmissionOp } from "@/lib/types";
 
@@ -189,5 +189,32 @@ export async function finalizeSubmission(
     where: { id: submissionId },
     data: { status: "pending" },
   });
+
+  // Notify all admins of the proposed change. Best-effort: a mail failure must
+  // not fail the submission the contributor just completed.
+  try {
+    const [admins, full] = await Promise.all([
+      prisma.adminUser.findMany({ select: { email: true } }),
+      prisma.submission.findUnique({
+        where: { id: submissionId },
+        select: {
+          op: true,
+          title: true,
+          date: true,
+          description: true,
+          email: true,
+        },
+      }),
+    ]);
+    if (full) {
+      await sendAdminSubmissionNotice(
+        admins.map((a) => a.email),
+        full,
+      );
+    }
+  } catch (err) {
+    console.error("[submission] admin notify failed:", err);
+  }
+
   return { ok: true };
 }

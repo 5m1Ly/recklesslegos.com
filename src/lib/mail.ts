@@ -100,3 +100,86 @@ export async function sendSubmissionUpdate(
   );
   await send(to, `Timeline update: ${entryTitle}`, text, html);
 }
+
+/** Escape user-supplied text before interpolating it into an HTML email. */
+function esc(s: string): string {
+  return s
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/**
+ * Notify every admin that a contributor has proposed a change (a submission
+ * that just entered the moderation queue). Best-effort: callers should not let
+ * a mail failure block the submission.
+ */
+export async function sendAdminSubmissionNotice(
+  adminEmails: string[],
+  submission: {
+    op: string;
+    title: string | null;
+    date: string | null;
+    description: string | null;
+    email: string;
+  },
+): Promise<void> {
+  if (adminEmails.length === 0) return;
+
+  const opLabel =
+    submission.op === "add"
+      ? "New timeline entry"
+      : submission.op === "edit"
+        ? "Edit to a timeline entry"
+        : "Removal request";
+  const title = submission.title ?? "(timeline entry)";
+  const submitter = submission.email || "(anonymous)";
+  const desc = submission.description?.trim();
+  const site = process.env.NEXT_PUBLIC_SITE_URL ?? "";
+
+  const subject = `New submission pending review: ${title}`;
+  const text = [
+    `${opLabel} was proposed and is awaiting moderation.`,
+    "",
+    `Type: ${submission.op}`,
+    submission.date ? `Date: ${submission.date}` : null,
+    `Title: ${title}`,
+    desc ? `Details: ${desc}` : null,
+    `Submitted by: ${submitter}`,
+    "",
+    site
+      ? `Review it: ${site}/admin`
+      : "Open the admin dashboard to review it.",
+  ]
+    .filter((l): l is string => l !== null)
+    .join("\n");
+
+  const html = wrap(
+    "New submission pending review",
+    `<p><strong>${esc(opLabel)}</strong> was proposed and is awaiting moderation.</p>
+     <p style="margin:0"><strong>Type:</strong> ${esc(submission.op)}</p>
+     ${submission.date ? `<p style="margin:0"><strong>Date:</strong> ${esc(submission.date)}</p>` : ""}
+     <p style="margin:0"><strong>Title:</strong> ${esc(title)}</p>
+     ${desc ? `<p><strong>Details:</strong> ${esc(desc)}</p>` : ""}
+     <p style="margin:0"><strong>Submitted by:</strong> ${esc(submitter)}</p>
+     ${site ? `<p><a href="${site}/admin">Review it in the admin dashboard →</a></p>` : ""}`,
+  );
+
+  // BCC so admins don't see each other's addresses; `to` is the From identity.
+  const transport = getTransport();
+  if (!transport) {
+    console.log(
+      `[mail] (no SMTP) would notify ${adminEmails.length} admin(s) — ${subject}`,
+    );
+    return;
+  }
+  await transport.sendMail({
+    from: FROM,
+    to: FROM,
+    bcc: adminEmails,
+    subject,
+    text,
+    html,
+  });
+}

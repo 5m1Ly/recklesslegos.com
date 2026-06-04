@@ -52,7 +52,6 @@ export function TimelineView({ entries, compact = false }: TimelineViewProps) {
       <div
         className="filterbar"
         style={{
-          borderTop: "1px solid var(--line)",
           borderBottom: "1px solid var(--line)",
           marginBottom: 0,
         }}

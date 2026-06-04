@@ -98,10 +98,10 @@ export default async function HomePage() {
                   Reckless&nbsp;Ben
                 </em>{" "}
                 &amp;
-				<br/>
-				Bricks and Minifigs
-				<br/>
-				Community Archive.
+                <br />
+                Bricks and Minifigs
+                <br />
+                Community Archive.
               </h1>
               <p className="lede" style={{ maxWidth: 540, marginBottom: 30 }}>
                 A centralized archive of the publicly available videos,

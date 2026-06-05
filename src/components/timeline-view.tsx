@@ -110,16 +110,7 @@ export function TimelineView({ entries, compact = false }: TimelineViewProps) {
         </div>
       ) : (
         <div style={{ position: "relative" }}>
-          <div
-            style={{
-              position: "absolute",
-              left: 148,
-              top: 0,
-              bottom: 0,
-              width: 1,
-              background: "var(--line)",
-            }}
-          />
+          <div className="tl-line-v" />
           {filtered.map((e) => {
             const isOpen = open === e.id;
             // Count refs by type for the collapsed summary + grouped chips.
@@ -128,19 +119,8 @@ export function TimelineView({ entries, compact = false }: TimelineViewProps) {
               grouped.set(r.refType, (grouped.get(r.refType) ?? 0) + 1);
 
             return (
-              <div
-                key={e.id}
-                className="tl-row"
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "148px 1fr",
-                  gap: 0,
-                  position: "relative",
-                }}
-              >
-                <div
-                  style={{ padding: "26px 24px 26px 0", textAlign: "right" }}
-                >
+              <div key={e.id} className="tl-row tl-entry">
+                <div className="tl-date-col">
                   <div
                     style={{
                       fontFamily: "var(--serif)",
@@ -168,20 +148,13 @@ export function TimelineView({ entries, compact = false }: TimelineViewProps) {
                   )}
                 </div>
                 <div
+                  className="tl-dot"
                   style={{
-                    position: "absolute",
-                    left: 148,
-                    top: 32,
-                    transform: "translateX(-50%)",
-                    width: 11,
-                    height: 11,
-                    borderRadius: "50%",
                     background: isOpen ? "var(--blue)" : "var(--ink-0)",
                     border: `2px solid ${isOpen ? "var(--blue)" : "var(--line-3)"}`,
-                    zIndex: 2,
                   }}
                 />
-                <div style={{ padding: "18px 0 18px 36px" }}>
+                <div className="tl-content-col">
                   <button
                     type="button"
                     onClick={() => setOpen(isOpen ? null : e.id)}

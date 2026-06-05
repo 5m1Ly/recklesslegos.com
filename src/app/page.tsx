@@ -148,22 +148,9 @@ export default async function HomePage() {
               "radial-gradient(120% 80% at 82% -20%, #16202b 0%, transparent 55%)",
           }}
         >
-          <div
-            className="wrap-wide"
-            style={{ display: "grid", gridTemplateColumns: "1.08fr 0.92fr" }}
-          >
-            <div
-              style={{
-                padding: "76px 56px 64px 0",
-                display: "flex",
-                flexDirection: "column",
-                justifyContent: "center",
-              }}
-            >
-              <h1
-                className="h-display"
-                style={{ fontSize: 56, marginBottom: 22 }}
-              >
+          <div className="wrap-wide hero-grid">
+            <div className="hero-content">
+              <h1 className="h-display hero-title" style={{ marginBottom: 22 }}>
                 The{" "}
                 <em style={{ fontStyle: "italic", color: "var(--blue)" }}>
                   Reckless&nbsp;Ben
@@ -180,8 +167,8 @@ export default async function HomePage() {
               <p className="lede" style={{ maxWidth: 540, marginBottom: 30 }}>
                 A centralized archive of the publicly available videos,
                 documents, social-media posts, police footage, and developments
-                surrounding the Bricks and Minifigs American Fork incident —
-                organized into a single, searchable record.
+                surrounding the Bricks and Minifigs incident — organized into a
+                single, searchable record.
               </p>
               <div style={{ display: "flex", gap: 13 }}>
                 <Link href="/timeline" className="btn btn-blue">
@@ -193,18 +180,13 @@ export default async function HomePage() {
                 </Link>
               </div>
             </div>
-            <div
-              style={{
-                borderLeft: "1px solid var(--line)",
-                position: "relative",
-                minHeight: 480,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                padding: 28,
-              }}
-            >
-              <h2>An unbiased explanatory video from a lawyer.</h2>
+            <div className="hero-aside">
+              <h2
+                className="h-section"
+                style={{ marginBottom: 18, fontSize: 28 }}
+              >
+                An unbiased explanatory video from a lawyer.
+              </h2>
               <div
                 style={{
                   position: "relative",
@@ -246,14 +228,7 @@ export default async function HomePage() {
 
         {/* CASE OVERVIEW */}
         <section className="wrap-wide section-sm">
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: 48,
-              alignItems: "center",
-            }}
-          >
+          <div className="overview-grid">
             <div>
               <div className="eyebrow line" style={{ marginBottom: 20 }}>
                 Case overview
@@ -267,9 +242,9 @@ export default async function HomePage() {
               <p className="body-txt" style={{ marginBottom: 14 }}>
                 <b style={{ color: "var(--tx-0)" }}>Ben Schneider</b>, known
                 online as <b style={{ color: "var(--tx-0)" }}>Reckless Ben</b>,
-                is a content creator who documented an incident involving{" "}
-                <b style={{ color: "var(--tx-0)" }}>Bricks and Minifigs</b>, a
-                used-LEGO franchise in Salem, Oregon.
+                is a content creator who documented an incident involving a{" "}
+                <b style={{ color: "var(--tx-0)" }}>Bricks and Minifigs</b>{" "}
+                franchise, located in Salem, Oregon.
               </p>
               <p className="body-txt" style={{ marginBottom: 14 }}>
                 The controversy centers on the store&apos;s acquisition of{" "}
@@ -397,14 +372,7 @@ export default async function HomePage() {
           <div className="eyebrow line" style={{ marginBottom: 20 }}>
             Browse the archive
           </div>
-          <div
-            className="quicknav-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(5,1fr)",
-              gap: 16,
-            }}
-          >
+          <div className="quicknav-grid">
             {quickNav.map(([id, title, count, desc]) => (
               <Link
                 key={id}

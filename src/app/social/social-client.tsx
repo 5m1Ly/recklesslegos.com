@@ -232,35 +232,15 @@ export function SocialClient({
 
   return (
     <div className="wrap-wide section-sm" style={{ paddingTop: 24 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "2fr 1fr",
-          gap: 32,
-          alignItems: "start",
-        }}
-        className="social-layout"
-      >
+      <div className="social-layout">
         {/* Left 2/3 — Coverage & commentary videos */}
         <section>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 14,
-              marginBottom: 18,
-              paddingBottom: 14,
-              borderBottom: "1px solid var(--line)",
-            }}
-          >
+          <div className="social-section-head">
             <h2 className="h-section" style={{ fontSize: 20 }}>
               Coverage &amp; commentary
             </h2>
             <span className="mono-sm tnum">{coverageVideos.length}</span>
-            <span
-              className="mono-sm"
-              style={{ marginLeft: "auto", color: "var(--tx-3)" }}
-            >
+            <span className="mono-sm social-section-sub">
               Third-party video coverage of the controversy
             </span>
           </div>
@@ -279,16 +259,7 @@ export function SocialClient({
 
         {/* Right 1/3 — Social posts feed */}
         <aside>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              gap: 14,
-              marginBottom: 18,
-              paddingBottom: 14,
-              borderBottom: "1px solid var(--line)",
-            }}
-          >
+          <div className="social-section-head">
             <h2 className="h-section" style={{ fontSize: 20 }}>
               Social posts
             </h2>

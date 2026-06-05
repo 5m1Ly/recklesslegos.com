@@ -704,6 +704,120 @@
   color: var(--tx-3);
 }
 
+/* ---------- page-level layouts ---------- */
+/* These provide the BASE (desktop) styles so media-query overrides can work.
+   Without these, an inline gridTemplateColumns wins over the breakpoint rule. */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1.08fr 0.92fr;
+}
+.hero-content {
+  padding: 76px 56px 64px 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.hero-aside {
+  border-left: 1px solid var(--line);
+  position: relative;
+  min-height: 480px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 28px;
+}
+.hero-title {
+  font-size: 56px;
+}
+.overview-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
+  align-items: center;
+}
+.quicknav-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+.social-layout {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 32px;
+  align-items: start;
+}
+.bodycam-layout {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 32px;
+  align-items: start;
+}
+
+/* ---------- social page ---------- */
+.social-section-head {
+  display: flex;
+  align-items: baseline;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--line);
+}
+.social-section-sub {
+  margin-left: auto;
+  color: var(--tx-3);
+}
+@media (max-width: 920px) {
+  .social-layout > aside {
+    border-top: 1px solid var(--line);
+    padding-top: 28px;
+  }
+  .social-section-sub {
+    display: none;
+  }
+}
+
+/* ---------- bodycam table ---------- */
+.bc-row {
+  display: grid;
+  grid-template-columns: 88px 1fr 130px 88px;
+  gap: 0;
+  align-items: center;
+}
+
+/* ---------- timeline layout ---------- */
+.tl-entry {
+  display: grid;
+  grid-template-columns: 148px 1fr;
+  position: relative;
+}
+.tl-line-v {
+  position: absolute;
+  left: 148px;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+  pointer-events: none;
+}
+.tl-dot {
+  position: absolute;
+  left: 148px;
+  top: 32px;
+  transform: translateX(-50%);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  z-index: 2;
+}
+.tl-date-col {
+  padding: 26px 24px 26px 0;
+  text-align: right;
+}
+.tl-content-col {
+  padding: 18px 0 18px 36px;
+}
+
 /* ---------- stat cards ---------- */
 .stat-grid {
   display: grid;
@@ -932,5 +1046,89 @@ textarea.ipt {
   }
   .quicknav-grid {
     grid-template-columns: repeat(2, 1fr);
+  }
+}
+/* hero / overview collapse before the nav breakpoint */
+@media (max-width: 700px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+  .hero-content {
+    padding: 40px 0 32px;
+  }
+  .hero-aside {
+    border-left: none;
+    border-top: 1px solid var(--line);
+    min-height: unset;
+  }
+  .hero-title {
+    font-size: 36px;
+  }
+  .overview-grid {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+}
+/* bodycam table: hide thumbnail + officer columns */
+@media (max-width: 600px) {
+  .bc-row {
+    grid-template-columns: 1fr auto;
+  }
+  .bc-preview {
+    display: none;
+  }
+  .bc-officer {
+    display: none;
+  }
+}
+/* timeline: collapse date column to stacked */
+@media (max-width: 600px) {
+  .tl-entry {
+    display: block;
+  }
+  .tl-line-v,
+  .tl-dot {
+    display: none;
+  }
+  .tl-date-col {
+    padding: 16px 0 4px;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+  }
+  .tl-content-col {
+    padding: 10px 0 16px;
+  }
+}
+/* small mobile */
+@media (max-width: 420px) {
+  .cta-gfm-label {
+    display: none;
+  }
+}
+@media (max-width: 480px) {
+  .wrap,
+  .wrap-wide {
+    padding: 0 16px;
+  }
+  .footer-top {
+    grid-template-columns: 1fr;
+  }
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .grid-4 {
+    grid-template-columns: 1fr;
+  }
+  .page-title {
+    font-size: 26px;
+  }
+  .section {
+    padding-block: 48px;
+  }
+  .section-sm {
+    padding-block: 28px;
+  }
+  .search-field {
+    min-width: 0;
   }
 }

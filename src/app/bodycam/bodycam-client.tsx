@@ -27,15 +27,7 @@ export function BodycamClient({ bodycam }: { bodycam: BodycamWithEvent[] }) {
 
   return (
     <div className="wrap-wide section-sm" style={{ paddingTop: 28 }}>
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 320px",
-          gap: 32,
-          alignItems: "start",
-        }}
-        className="bodycam-layout"
-      >
+      <div className="bodycam-layout">
         <div>
           <div className="filterbar" style={{ paddingTop: 0 }}>
             <div className="search-field">
@@ -60,18 +52,16 @@ export function BodycamClient({ bodycam }: { bodycam: BodycamWithEvent[] }) {
 
           <div className="card" style={{ overflow: "hidden" }}>
             <div
+              className="bc-row"
               style={{
-                display: "grid",
-                gridTemplateColumns: "88px 1fr 130px 88px",
-                gap: 0,
                 padding: "12px 16px",
                 borderBottom: "1px solid var(--line)",
                 background: "var(--ink-2)",
               }}
             >
-              <span className="mono-label">Preview</span>
+              <span className="mono-label bc-preview">Preview</span>
               <span className="mono-label">Incident / file</span>
-              <span className="mono-label">Officer · unit</span>
+              <span className="mono-label bc-officer">Officer · unit</span>
               <span className="mono-label" style={{ textAlign: "right" }}>
                 Length
               </span>
@@ -81,21 +71,15 @@ export function BodycamClient({ bodycam }: { bodycam: BodycamWithEvent[] }) {
                 key={b.id}
                 type="button"
                 onClick={() => setModal(b)}
+                className="bc-row"
                 style={{
-                  display: "grid",
-                  gridTemplateColumns: "88px 1fr 130px 88px",
-                  gap: 0,
                   padding: "14px 16px",
-                  borderBottom:
-                    i < rows.length - 1 ? "1px solid var(--line)" : "0",
                   cursor: "pointer",
-                  alignItems: "center",
                   width: "100%",
                   background: "transparent",
                   border: "none",
-                  borderBottomWidth: i < rows.length - 1 ? 1 : 0,
-                  borderBottomStyle: "solid",
-                  borderBottomColor: "var(--line)",
+                  borderBottom:
+                    i < rows.length - 1 ? "1px solid var(--line)" : "none",
                   textAlign: "left",
                 }}
                 onMouseEnter={(e) => {
@@ -106,7 +90,7 @@ export function BodycamClient({ bodycam }: { bodycam: BodycamWithEvent[] }) {
                 }}
               >
                 <div
-                  className="ph"
+                  className="ph bc-preview"
                   style={{
                     width: 72,
                     height: 44,
@@ -141,7 +125,7 @@ export function BodycamClient({ bodycam }: { bodycam: BodycamWithEvent[] }) {
                     <span style={{ color: "var(--tx-3)" }}>{b.type}</span>
                   </div>
                 </div>
-                <div>
+                <div className="bc-officer">
                   <div style={{ fontSize: 13, color: "var(--tx-1)" }}>
                     {b.officer}
                   </div>

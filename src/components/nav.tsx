@@ -80,7 +80,7 @@ export function Nav() {
                 strokeWidth="1.6"
               />
             </svg>{" "}
-            GoFundMe
+            <span className="cta-gfm-label">GoFundMe</span>
           </a>
         </div>
         <button

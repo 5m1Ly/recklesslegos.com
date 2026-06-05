@@ -267,11 +267,9 @@ export default async function HomePage() {
               <p className="body-txt" style={{ marginBottom: 14 }}>
                 <b style={{ color: "var(--tx-0)" }}>Ben Schneider</b>, known
                 online as <b style={{ color: "var(--tx-0)" }}>Reckless Ben</b>,
-                is a LEGO content creator who documented an incident involving{" "}
-                <b style={{ color: "var(--tx-0)" }}>
-                  Bricks and Minifigs American Fork
-                </b>
-                , a used-LEGO franchise in American Fork, Utah.
+                is a content creator who documented an incident involving{" "}
+                <b style={{ color: "var(--tx-0)" }}>Bricks and Minifigs</b>, a
+                used-LEGO franchise in Salem, Oregon.
               </p>
               <p className="body-txt" style={{ marginBottom: 14 }}>
                 The controversy centers on the store&apos;s acquisition of{" "}
@@ -301,7 +299,7 @@ export default async function HomePage() {
                     className="dot"
                     style={{ background: "var(--amber)" }}
                   />
-                  American Fork, Utah
+                  Salem, Oregon
                 </span>
               </div>
             </div>
@@ -310,7 +308,7 @@ export default async function HomePage() {
               style={{ aspectRatio: "16/10", borderRadius: "var(--radius)" }}
             >
               <span className="ph-lbl">
-                Bricks and Minifigs · American Fork, Utah
+                Bricks and Minifigs · Salem, Oregon
               </span>
             </div>
           </div>

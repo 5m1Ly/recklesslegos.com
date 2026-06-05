@@ -215,9 +215,10 @@ export function BodycamClient({ bodycam }: { bodycam: BodycamWithEvent[] }) {
               style={{ fontSize: 13, margin: 0, color: "var(--tx-2)" }}
             >
               Footage released by the American Fork Police Department via
-              Dropbox. Run{" "}
-              <code style={{ fontSize: 12 }}>pnpm media:download</code> to
-              download the files locally and enable in-browser playback.
+              Dropbox. The URL of which was then add to this video{" "}
+              <a href="https://www.youtube.com/watch?v=IcVmSQpIPRY">
+                https://www.youtube.com/watch?v=IcVmSQpIPRY
+              </a>
             </p>
           </div>
         </div>

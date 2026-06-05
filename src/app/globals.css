@@ -746,6 +746,11 @@
   gap: 32px;
   align-items: start;
 }
+/* Grid items must opt-out of min-width:auto or image natural widths blow out the column */
+.social-layout > section,
+.social-layout > aside {
+  min-width: 0;
+}
 .bodycam-layout {
   display: grid;
   grid-template-columns: 1fr 320px;

@@ -17,6 +17,7 @@
     "db:push": "prisma migrate dev && prisma generate",
     "db:seed": "tsx prisma/seed.ts",
     "db:seed:admin": "tsx prisma/seed-admin.ts",
+    "db:seed:lego": "tsx prisma/seed-brickeconomy.ts",
     "db:studio": "prisma studio",
     "setup": "pnpm db:up && pnpm db:wait && pnpm db:push && pnpm db:seed",
     "media:download": "tsx scripts/download-dropbox.ts"

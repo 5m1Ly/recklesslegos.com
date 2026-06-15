@@ -60,7 +60,7 @@ jobs:
       # data. Set SEED_ADMIN_EMAILS (comma-separated) under Settings → Secrets →
       # Actions to manage admins; defaults to hbouma01@gmail.com when unset.
       - name: Seed admin user(s)
-        run: pnpm db:seed:admin
+        run: pnpm db:seed:admin && pnpm db:seed:lego
         env:
           SEED_ADMIN_EMAILS: ${{ secrets.SEED_ADMIN_EMAILS }}
 

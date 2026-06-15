@@ -1,21 +1,16 @@
 import "server-only";
+import { API_BASE, authHeaders } from "@/lib/brickeconomy";
 import { prisma } from "@/lib/db";
 
 // ─────────────────────────────────────────────────────────────────────────────
-// BrickEconomy current-value refresh.
+// BrickEconomy single-set current-value refresh.
 //
-// ⚠️ IMPORTANT: BrickEconomy's API contract is only available once your access
-// request is approved, and the exact base URL / auth header / response shape
-// are NOT publicly documented. The plumbing below (batching, DB writes, cron,
-// gating) is correct as-is — but you MUST confirm two things against the docs
-// you receive and adjust `fetchSetValue` accordingly:
-//   1. The request: endpoint path + how the API key is sent (header name).
-//   2. The response: which JSON field holds the current market value (USD).
-// Everything else can stay untouched.
+// Base URL + bearer auth live in src/lib/brickeconomy.ts. The exact JSON field
+// holding the current market value (USD) is not publicly documented, so
+// `extractValue` below probes several candidate keys; trim it once you've seen
+// a real response. This refreshes the per-set value on a cron; the full
+// collection import lives in prisma/seed-brickeconomy.ts.
 // ─────────────────────────────────────────────────────────────────────────────
-
-// Adjust to the base URL in your BrickEconomy API docs.
-const API_BASE = "https://www.brickeconomy.com/api/v1";
 
 export interface LegoRefreshResult {
   updated: number;
@@ -43,12 +38,7 @@ async function fetchSetValue(
   const url = `${API_BASE}/set/${encodeURIComponent(normalizeSetNumber(setNumber))}`;
 
   const res = await fetch(url, {
-    headers: {
-      // BrickEconomy may expect "x-apikey", "Authorization: Bearer …", or a
-      // query param — confirm and adjust this single header.
-      "x-apikey": apiKey,
-      accept: "application/json",
-    },
+    headers: authHeaders(apiKey),
     cache: "no-store",
   });
 

@@ -15,31 +15,42 @@ export const metadata = pageMetadata({
 });
 
 export default async function CollectionPage() {
-  const sets = await prisma.legoSet.findMany({
-    orderBy: { currentValue: "desc" },
-  });
+  const [sets, minifigs] = await Promise.all([
+    prisma.legoSet.findMany({ orderBy: { currentValue: "desc" } }),
+    prisma.legoMinifig.findMany({ orderBy: { currentValue: "desc" } }),
+  ]);
 
-  const sum = (rows: { currentValue: number }[]) =>
+  // Sets count once; minifigs count by quantity (duplicates are common).
+  const setSum = (rows: { currentValue: number }[]) =>
     rows.reduce((total, s) => total + s.currentValue, 0);
+  const figSum = (rows: { currentValue: number; quantity: number }[]) =>
+    rows.reduce((total, m) => total + m.currentValue * m.quantity, 0);
 
-  const withBandM = sets.filter((s) => s.status === "With Bricks & Minifigs");
-  const sold = sets.filter((s) => s.status === "Sold");
+  const byStatus = (status: string) => ({
+    sets: sets.filter((s) => s.status === status),
+    figs: minifigs.filter((m) => m.status === status),
+  });
+  const withBandM = byStatus("With Bricks & Minifigs");
+  const sold = byStatus("Sold");
+
+  const figCount = minifigs.reduce((n, m) => n + m.quantity, 0);
+  const pl = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
   const stats = [
     {
-      n: fmtMoney(sum(sets)),
+      n: fmtMoney(setSum(sets) + figSum(minifigs)),
       label: "Total collection value",
-      x: `${sets.length} set${sets.length === 1 ? "" : "s"} · current market value`,
+      x: `${pl(sets.length, "set")} · ${pl(figCount, "minifig")} · current market value`,
     },
     {
-      n: fmtMoney(sum(withBandM)),
+      n: fmtMoney(setSum(withBandM.sets) + figSum(withBandM.figs)),
       label: "Still with Bricks & Minifigs",
-      x: `${withBandM.length} set${withBandM.length === 1 ? "" : "s"}`,
+      x: `${pl(withBandM.sets.length, "set")} · ${pl(withBandM.figs.length, "minifig")}`,
     },
     {
-      n: fmtMoney(sum(sold)),
+      n: fmtMoney(setSum(sold.sets) + figSum(sold.figs)),
       label: "Sold",
-      x: `${sold.length} set${sold.length === 1 ? "" : "s"}`,
+      x: `${pl(sold.sets.length, "set")} · ${pl(sold.figs.length, "minifig")}`,
     },
   ];
 
@@ -71,7 +82,7 @@ export default async function CollectionPage() {
             </Link>
           </div>
         </PageHead>
-        <CollectionClient sets={sets} />
+        <CollectionClient sets={sets} minifigs={minifigs} />
       </main>
       <Footer />
     </div>

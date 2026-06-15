@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { cache } from "react";
 import { Avatar } from "@/components/avatar";
 import { CatTag } from "@/components/cat-tag";
 import { Footer } from "@/components/footer";
@@ -18,12 +19,18 @@ import { pageMetadata } from "@/lib/site";
 import { fmtDate, SIDE_META, type Side } from "@/lib/types";
 import { ConnectionsGraph } from "./connections-graph";
 
+// Single source for the person record, deduped across generateMetadata and the
+// page render via React cache() — one DB hit per profile view instead of two.
+const getPerson = cache((id: string) =>
+  prisma.person.findUnique({
+    where: { id },
+    include: { events: { include: { event: true } } },
+  }),
+);
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { id } = await params;
-  const person = await prisma.person.findUnique({
-    where: { id },
-    select: { name: true, role: true, org: true, bio: true },
-  });
+  const person = await getPerson(id);
 
   if (!person) {
     return pageMetadata({
@@ -47,8 +54,6 @@ type PersonWithEvents = Person & {
   events: (EventPerson & { event: Event | null })[];
 };
 
-type PersonWithEventIds = Person & { events: EventPerson[] };
-
 interface Props {
   params: Promise<{ id: string }>;
 }
@@ -57,17 +62,22 @@ export default async function PersonProfilePage({ params }: Props) {
   const { id } = await params;
 
   const [rawPerson, allPeople] = await Promise.all([
-    prisma.person.findUnique({
-      where: { id },
-      include: { events: { include: { event: true } } },
+    getPerson(id),
+    // Only the fields the connections graph needs (id/name/side) plus each
+    // person's event IDs — not their full records.
+    prisma.person.findMany({
+      select: {
+        id: true,
+        name: true,
+        side: true,
+        events: { select: { eventId: true } },
+      },
     }),
-    prisma.person.findMany({ include: { events: true } }),
   ]);
 
   if (!rawPerson) notFound();
 
   const person = rawPerson as PersonWithEvents;
-  const people = allPeople as PersonWithEventIds[];
 
   const sm = SIDE_META[person.side as Side];
   const eventIds = person.events.map((ep: EventPerson) => ep.eventId);
@@ -85,10 +95,10 @@ export default async function PersonProfilePage({ params }: Props) {
   const videos = relVideos as Video[];
   const docs = relDocs as Document[];
 
-  const connected = people.filter(
-    (o: PersonWithEventIds) =>
+  const connected = allPeople.filter(
+    (o) =>
       o.id !== person.id &&
-      o.events.some((ep: EventPerson) => eventIds.includes(ep.eventId)),
+      o.events.some((ep) => eventIds.includes(ep.eventId)),
   );
 
   return (

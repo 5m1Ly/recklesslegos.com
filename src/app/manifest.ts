@@ -3,7 +3,7 @@ import type { MetadataRoute } from "next";
 // Served at /manifest.webmanifest; Next injects the <link rel="manifest"> for us.
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "RecklessBricks — Bricks & Minifigs Takeover Archive",
+    name: "RecklessBricks | RecklessBen- Bricks & Minifigs Takeover Archive",
     short_name: "RecklessBricks",
     description:
       "A centralized archive of the videos, documents, social posts, and police footage surrounding the Bricks & Minifigs takeover and the disappearance of Bryan Mansell's LEGO Star Wars collection.",

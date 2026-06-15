@@ -32,7 +32,7 @@ export const metadata: Metadata = {
   title: {
     default: SITE_NAME,
     // Per-page titles render as e.g. "Timeline — RecklessBricks".
-    template: `%s — ${SITE_NAME}`,
+    template: `%s | ${SITE_NAME}`,
   },
   description: SITE_DESCRIPTION,
   applicationName: SITE_NAME,

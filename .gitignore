@@ -45,3 +45,6 @@ next-env.d.ts
 
 # Downloaded bodycam video files — too large for git, re-fetch with pnpm media:download
 /public/media/bodycam/
+
+# Large source archives from Bryan (zips of documents/photos) — too big for git
+/data/

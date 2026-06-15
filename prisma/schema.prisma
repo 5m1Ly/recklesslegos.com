@@ -204,3 +204,15 @@ model AdminSession {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+// Persistent login for contributors: created the first time a contributor
+// verifies their email code, so subsequent add/edit/remove proposals don't
+// require re-verifying by email.
+model ContributorSession {
+  id        String   @id @default(cuid())
+  token     String   @unique
+  email     String
+  emailHash String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}

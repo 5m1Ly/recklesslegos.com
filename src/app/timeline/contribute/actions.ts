@@ -9,6 +9,7 @@ import {
   isWellFormedCode,
   MAX_CODE_ATTEMPTS,
 } from "@/lib/codes";
+import { createContributorSession } from "@/lib/contributor-auth";
 import { hashEmail } from "@/lib/contributors";
 import { prisma } from "@/lib/db";
 import { sendAdminSubmissionNotice, sendVerifyCode } from "@/lib/mail";
@@ -145,6 +146,7 @@ export async function verifyContribCode(
     where: { id: submissionId },
     select: {
       status: true,
+      email: true,
       codeHash: true,
       codeExpires: true,
       codeAttempts: true,
@@ -170,6 +172,11 @@ export async function verifyContribCode(
     where: { id: submissionId },
     data: { emailVerified: true, codeHash: null, codeExpires: null },
   });
+
+  // Verifying once logs the contributor in, so future add/edit/remove
+  // proposals can skip the email-code step entirely.
+  if (sub.email) await createContributorSession(sub.email);
+
   return { ok: true };
 }
 

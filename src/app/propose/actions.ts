@@ -1,6 +1,10 @@
 "use server";
 
 import type { Prisma } from "@/generated/prisma/client";
+import {
+  destroyContributorSession,
+  getContributorFromCookie,
+} from "@/lib/contributor-auth";
 import { hashEmail, redactEmail } from "@/lib/contributors";
 import { prisma } from "@/lib/db";
 import {
@@ -76,6 +80,52 @@ export async function getConsentStatus(
     select: { id: true },
   });
   return { onFile: !!c };
+}
+
+/** The currently logged-in contributor (from their session cookie), or null. */
+export async function getContributorSession(): Promise<{
+  email: string;
+} | null> {
+  return getContributorFromCookie();
+}
+
+/** Log the current contributor out (clears the session cookie). */
+export async function logoutContributor(): Promise<void> {
+  await destroyContributorSession();
+}
+
+/**
+ * Mark a draft submission as verified using the caller's contributor session,
+ * skipping the email-code step. Used when a contributor is already logged in.
+ */
+export async function attachContributorSession(input: {
+  submissionId: string;
+  wantsUpdates: boolean;
+}): Promise<ActionResult> {
+  const identity = await getContributorFromCookie();
+  if (!identity) return { ok: false, error: "Please verify your email." };
+
+  const sub = await prisma.submission.findUnique({
+    where: { id: input.submissionId },
+    select: { status: true },
+  });
+  if (!sub || sub.status !== "draft")
+    return { ok: false, error: "This submission can no longer be edited." };
+
+  await prisma.submission.update({
+    where: { id: input.submissionId },
+    data: {
+      email: identity.email,
+      emailHash: hashEmail(identity.email),
+      wantsUpdates: input.wantsUpdates,
+      emailVerified: true,
+      codeHash: null,
+      codeExpires: null,
+      codeAttempts: 0,
+    },
+  });
+
+  return { ok: true };
 }
 
 /** Record the two consent answers (+ optional display name) for a submission

@@ -1,8 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState, useTransition } from "react";
-import { getConsentStatus, recordConsent } from "@/app/propose/actions";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import {
+  attachContributorSession,
+  getConsentStatus,
+  getContributorSession,
+  logoutContributor,
+  recordConsent,
+} from "@/app/propose/actions";
 import { actionErrorMessage } from "@/lib/stale-action";
 import {
   fmtDate,
@@ -69,6 +75,13 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
   const [notice, setNotice] = useState<string | null>(null);
   const [pending, startTransition] = useTransition();
 
+  // Existing contributor login (set once they've verified an email before).
+  // When present we skip the email-code step for any add/edit/remove.
+  const [sessionEmail, setSessionEmail] = useState<string | null>(null);
+  useEffect(() => {
+    getContributorSession().then((s) => setSessionEmail(s?.email ?? null));
+  }, []);
+
   const optByKey = useMemo(() => {
     const m = new Map<string, RefOption>();
     for (const o of refOptions) m.set(`${o.refType}:${o.refId}`, o);
@@ -131,6 +144,12 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
           return;
         }
         setSubmissionId(res.submissionId);
+        // Already logged in → no email/code needed; jump straight to submit.
+        if (sessionEmail) {
+          const status = await getConsentStatus(sessionEmail);
+          setConsentOnFile(status.onFile);
+          setVerified(true);
+        }
         setStep("verify");
       } catch (e) {
         setError(actionErrorMessage(e));
@@ -182,6 +201,16 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     if (!submissionId) return;
     startTransition(async () => {
       try {
+        if (sessionEmail) {
+          const att = await attachContributorSession({
+            submissionId,
+            wantsUpdates,
+          });
+          if (!att.ok) {
+            setError(att.error ?? "Couldn't submit.");
+            return;
+          }
+        }
         if (!consentOnFile) {
           const cr = await recordConsent({
             submissionId,
@@ -203,6 +232,16 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
       } catch (e) {
         setError(actionErrorMessage(e));
       }
+    });
+  };
+
+  const handleLogout = () => {
+    startTransition(async () => {
+      await logoutContributor();
+      setSessionEmail(null);
+      setVerified(false);
+      setCodeSent(false);
+      setNotice(null);
     });
   };
 
@@ -459,7 +498,131 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
         </div>
       )}
 
-      {step === "verify" && (
+      {step === "verify" && sessionEmail && (
+        <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+          <div
+            className="card card-pad"
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
+            <span className="body-txt" style={{ margin: 0 }}>
+              Signed in as <strong>{sessionEmail}</strong>
+            </span>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={pending}
+              onClick={handleLogout}
+            >
+              Use a different email
+            </button>
+          </div>
+
+          <label
+            style={{
+              display: "flex",
+              gap: 10,
+              alignItems: "center",
+              cursor: "pointer",
+            }}
+          >
+            <input
+              type="checkbox"
+              checked={wantsUpdates}
+              onChange={(e) => setWantsUpdates(e.target.checked)}
+            />
+            <span className="body-txt" style={{ margin: 0 }}>
+              Email me updates about my published content (when it's accepted,
+              edited, or rejected).
+            </span>
+          </label>
+
+          {!consentOnFile && (
+            <div
+              className="card card-pad"
+              style={{ display: "flex", flexDirection: "column", gap: 14 }}
+            >
+              <span className="mono-label">Before you submit</span>
+              <Field
+                label="Display name"
+                hint="Optional · shown if you choose to be listed"
+              >
+                <input
+                  type="text"
+                  className="ipt"
+                  value={displayName}
+                  maxLength={80}
+                  onChange={(e) => setDisplayName(e.target.value)}
+                  placeholder="How you'd like to be credited"
+                />
+              </Field>
+              <label
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "flex-start",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={consentStore}
+                  onChange={(e) => setConsentStore(e.target.checked)}
+                />
+                <span className="body-txt" style={{ margin: 0 }}>
+                  You may store my email address in your database. If unchecked,
+                  we only use it to verify and notify you, then delete it once a
+                  moderator decides.
+                </span>
+              </label>
+              <label
+                style={{
+                  display: "flex",
+                  gap: 10,
+                  alignItems: "flex-start",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={consentList}
+                  onChange={(e) => setConsentList(e.target.checked)}
+                />
+                <span className="body-txt" style={{ margin: 0 }}>
+                  List me publicly on the contributors page (shown as your
+                  display name and a redacted email).
+                </span>
+              </label>
+            </div>
+          )}
+
+          <div style={{ display: "flex", gap: 12 }}>
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={pending}
+              onClick={handleSubmit}
+            >
+              {pending ? "Submitting…" : "Submit for review"}
+            </button>
+            <button
+              type="button"
+              className="btn btn-ghost"
+              disabled={pending}
+              onClick={() => setStep("compose")}
+            >
+              Back
+            </button>
+          </div>
+        </div>
+      )}
+
+      {step === "verify" && !sessionEmail && (
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           <Field label="Your email" hint="Required to submit a change">
             <input

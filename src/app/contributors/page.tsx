@@ -3,6 +3,14 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { prisma } from "@/lib/db";
+import { pageMetadata } from "@/lib/site";
+
+export const metadata = pageMetadata({
+  title: "Contributors",
+  description:
+    "Contributors who have submitted and helped verify material for the RecklessBricks archive.",
+  path: "/contributors",
+});
 
 export default async function ContributorsPage() {
   const [contributors, counts] = await Promise.all([

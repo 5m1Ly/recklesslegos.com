@@ -3,7 +3,15 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { prisma } from "@/lib/db";
+import { pageMetadata } from "@/lib/site";
 import { DocumentsClient } from "./documents-client";
+
+export const metadata = pageMetadata({
+  title: "Documents",
+  description:
+    "Court filings, police reports, statements, and records documenting the Bricks & Minifigs takeover and the missing Mansell LEGO Star Wars collection.",
+  path: "/documents",
+});
 
 export default async function DocumentsPage() {
   const documents = await prisma.document.findMany({

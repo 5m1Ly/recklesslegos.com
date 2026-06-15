@@ -4,7 +4,15 @@ import { Icons } from "@/components/icons";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { prisma } from "@/lib/db";
+import { pageMetadata } from "@/lib/site";
 import { BodycamClient } from "./bodycam-client";
+
+export const metadata = pageMetadata({
+  title: "Bodycam Footage",
+  description:
+    "Released police body-camera and dashcam footage related to the Bricks & Minifigs takeover and the disappearance of Bryan Mansell's LEGO Star Wars collection, with locations and timestamps.",
+  path: "/bodycam",
+});
 
 export default async function BodycamPage() {
   const bodycam = await prisma.bodycam.findMany({

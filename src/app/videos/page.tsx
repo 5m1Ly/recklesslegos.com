@@ -3,7 +3,15 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { prisma } from "@/lib/db";
+import { pageMetadata } from "@/lib/site";
 import { VideosClient } from "./videos-client";
+
+export const metadata = pageMetadata({
+  title: "Videos",
+  description:
+    "Creator uploads, official statements, business responses, and news coverage documenting the Bricks & Minifigs takeover and the missing Mansell LEGO Star Wars collection.",
+  path: "/videos",
+});
 
 export default async function VideosPage() {
   const videos = await prisma.video.findMany({

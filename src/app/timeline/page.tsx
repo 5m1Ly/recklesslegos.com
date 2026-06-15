@@ -3,7 +3,15 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { TimelineView } from "@/components/timeline-view";
+import { pageMetadata } from "@/lib/site";
 import { getTimelineEntries } from "@/lib/timeline";
+
+export const metadata = pageMetadata({
+  title: "Timeline",
+  description:
+    "Chronological timeline of the Bricks & Minifigs takeover and the disappearance of Bryan Mansell's LEGO Star Wars collection, with linked videos, documents, and footage.",
+  path: "/timeline",
+});
 
 export default async function TimelinePage() {
   const entries = await getTimelineEntries();

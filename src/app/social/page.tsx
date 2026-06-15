@@ -3,7 +3,15 @@ import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { prisma } from "@/lib/db";
+import { pageMetadata } from "@/lib/site";
 import { SocialClient } from "./social-client";
+
+export const metadata = pageMetadata({
+  title: "Social Posts",
+  description:
+    "Archived social-media posts from across platforms documenting the Bricks & Minifigs takeover and the missing Mansell LEGO Star Wars collection.",
+  path: "/social",
+});
 
 export default async function SocialPage() {
   const [social, coverageVideos] = await Promise.all([

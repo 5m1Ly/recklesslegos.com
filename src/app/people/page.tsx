@@ -4,7 +4,15 @@ import { Icons } from "@/components/icons";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
 import { prisma } from "@/lib/db";
+import { pageMetadata } from "@/lib/site";
 import { PeopleClient } from "./people-client";
+
+export const metadata = pageMetadata({
+  title: "People",
+  description:
+    "Directory of the people and organizations involved in the Bricks & Minifigs takeover and the disappearance of Bryan Mansell's LEGO Star Wars collection.",
+  path: "/people",
+});
 
 export default async function PeoplePage() {
   const people = await prisma.person.findMany({

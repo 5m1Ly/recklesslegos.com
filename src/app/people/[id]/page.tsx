@@ -1,3 +1,4 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Avatar } from "@/components/avatar";
@@ -13,8 +14,34 @@ import type {
   Video,
 } from "@/generated/prisma/client";
 import { prisma } from "@/lib/db";
+import { pageMetadata } from "@/lib/site";
 import { fmtDate, SIDE_META, type Side } from "@/lib/types";
 import { ConnectionsGraph } from "./connections-graph";
+
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const { id } = await params;
+  const person = await prisma.person.findUnique({
+    where: { id },
+    select: { name: true, role: true, org: true, bio: true },
+  });
+
+  if (!person) {
+    return pageMetadata({
+      title: "Person not found",
+      description: "This profile could not be found in the archive.",
+      path: `/people/${id}`,
+    });
+  }
+
+  const roleLine = [person.role, person.org].filter(Boolean).join(", ");
+  return pageMetadata({
+    title: person.name,
+    description:
+      person.bio ||
+      `${person.name}${roleLine ? ` — ${roleLine}` : ""}. Profile and timeline involvement in the Bricks & Minifigs takeover and the disappearance of Bryan Mansell's LEGO Star Wars collection.`,
+    path: `/people/${id}`,
+  });
+}
 
 type PersonWithEvents = Person & {
   events: (EventPerson & { event: Event | null })[];

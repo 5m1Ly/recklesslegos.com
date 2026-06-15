@@ -60,9 +60,15 @@ jobs:
       # data. Set SEED_ADMIN_EMAILS (comma-separated) under Settings → Secrets →
       # Actions to manage admins; defaults to hbouma01@gmail.com when unset.
       - name: Seed admin user(s)
-        run: pnpm db:seed:admin && pnpm db:seed:lego
+        run: pnpm db:seed:admin
         env:
           SEED_ADMIN_EMAILS: ${{ secrets.SEED_ADMIN_EMAILS }}
+
+      # Import the LEGO collection from BrickEconomy. Best-effort: a transient
+      # API error or auth misconfig must not block the site from deploying, so
+      # this step never fails the job (existing collection rows are kept).
+      - name: Import LEGO collection (BrickEconomy)
+        run: pnpm db:seed:lego || echo "::warning::BrickEconomy import failed — keeping existing collection data"
 
       - name: Build
         run: pnpm build

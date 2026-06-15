@@ -60,6 +60,7 @@ async function importSets(): Promise<number> {
       theme: s.theme,
       year: s.year,
       pieces: s.pieces,
+      quantity: s.quantity,
       retailPrice: s.retailPrice,
       currentValue: s.currentValue,
       imageUrl: s.imageUrl,

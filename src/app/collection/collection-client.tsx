@@ -157,6 +157,7 @@ function CardTitle({ children }: { children: React.ReactNode }) {
 }
 
 function SetCard({ set: s }: { set: LegoSet }) {
+  const multiple = s.quantity > 1;
   return (
     <div className="card" style={{ overflow: "hidden", display: "block" }}>
       <CardThumb
@@ -167,7 +168,14 @@ function SetCard({ set: s }: { set: LegoSet }) {
 
       <div style={{ padding: "14px 16px" }}>
         <StatusTag status={s.status} />
-        <CardTitle>{s.name}</CardTitle>
+        <CardTitle>
+          {s.name}
+          {multiple ? (
+            <span className="mono-sm" style={{ marginLeft: 8 }}>
+              ×{s.quantity}
+            </span>
+          ) : null}
+        </CardTitle>
 
         <div className="mono-sm" style={{ marginTop: 4 }}>
           {[
@@ -200,6 +208,11 @@ function SetCard({ set: s }: { set: LegoSet }) {
             </div>
           </div>
           <div style={{ textAlign: "right" }} className="mono-sm">
+            {multiple ? (
+              <div>
+                ×{s.quantity} = {fmtMoney(s.currentValue * s.quantity)}
+              </div>
+            ) : null}
             {s.retailPrice ? <div>Retail {fmtMoney(s.retailPrice)}</div> : null}
             {s.status === "Sold" && s.soldPrice ? (
               <div>Sold for {fmtMoney(s.soldPrice)}</div>

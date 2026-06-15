@@ -214,6 +214,7 @@ model LegoSet {
   theme        String   @default("Star Wars")
   year         Int      @default(0)
   pieces       Int      @default(0)
+  quantity     Int      @default(1)
   retailPrice  Int      @default(0)
   currentValue Int      @default(0)
   status       String   @default("With Bricks & Minifigs")

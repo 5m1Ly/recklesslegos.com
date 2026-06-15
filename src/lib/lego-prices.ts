@@ -1,5 +1,5 @@
 import "server-only";
-import { API_BASE, authHeaders } from "@/lib/brickeconomy";
+import { API_BASE, authHeaders, authQuery } from "@/lib/brickeconomy";
 import { prisma } from "@/lib/db";
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -35,7 +35,12 @@ async function fetchSetValue(
   setNumber: string,
   apiKey: string,
 ): Promise<number | null> {
-  const url = `${API_BASE}/set/${encodeURIComponent(normalizeSetNumber(setNumber))}`;
+  const url = new URL(
+    `${API_BASE}/set/${encodeURIComponent(normalizeSetNumber(setNumber))}`,
+  );
+  for (const [k, v] of Object.entries(authQuery(apiKey))) {
+    url.searchParams.set(k, v);
+  }
 
   const res = await fetch(url, {
     headers: authHeaders(apiKey),

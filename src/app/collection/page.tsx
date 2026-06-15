@@ -20,11 +20,12 @@ export default async function CollectionPage() {
     prisma.legoMinifig.findMany({ orderBy: { currentValue: "desc" } }),
   ]);
 
-  // Sets count once; minifigs count by quantity (duplicates are common).
-  const setSum = (rows: { currentValue: number }[]) =>
-    rows.reduce((total, s) => total + s.currentValue, 0);
-  const figSum = (rows: { currentValue: number; quantity: number }[]) =>
-    rows.reduce((total, m) => total + m.currentValue * m.quantity, 0);
+  // Values and counts are per owned copy: a row's quantity is how many Bryan
+  // owns, so value and totals multiply by it.
+  const sum = (rows: { currentValue: number; quantity: number }[]) =>
+    rows.reduce((total, r) => total + r.currentValue * r.quantity, 0);
+  const count = (rows: { quantity: number }[]) =>
+    rows.reduce((n, r) => n + r.quantity, 0);
 
   const byStatus = (status: string) => ({
     sets: sets.filter((s) => s.status === status),
@@ -33,24 +34,25 @@ export default async function CollectionPage() {
   const withBandM = byStatus("With Bricks & Minifigs");
   const sold = byStatus("Sold");
 
-  const figCount = minifigs.reduce((n, m) => n + m.quantity, 0);
   const pl = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
+  const breakdown = (g: { sets: typeof sets; figs: typeof minifigs }) =>
+    `${pl(count(g.sets), "set")} · ${pl(count(g.figs), "minifig")}`;
 
   const stats = [
     {
-      n: fmtMoney(setSum(sets) + figSum(minifigs)),
+      n: fmtMoney(sum(sets) + sum(minifigs)),
       label: "Total collection value",
-      x: `${pl(sets.length, "set")} · ${pl(figCount, "minifig")} · current market value`,
+      x: `${breakdown({ sets, figs: minifigs })} · current market value`,
     },
     {
-      n: fmtMoney(setSum(withBandM.sets) + figSum(withBandM.figs)),
+      n: fmtMoney(sum(withBandM.sets) + sum(withBandM.figs)),
       label: "Still with Bricks & Minifigs",
-      x: `${pl(withBandM.sets.length, "set")} · ${pl(withBandM.figs.length, "minifig")}`,
+      x: breakdown(withBandM),
     },
     {
-      n: fmtMoney(setSum(sold.sets) + figSum(sold.figs)),
+      n: fmtMoney(sum(sold.sets) + sum(sold.figs)),
       label: "Sold",
-      x: `${pl(sold.sets.length, "set")} · ${pl(sold.figs.length, "minifig")}`,
+      x: breakdown(sold),
     },
   ];
 

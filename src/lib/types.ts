@@ -55,6 +55,27 @@ export const VIDEO_TIERS: [string, string, string][] = [
   ],
 ];
 
+// Where each LEGO set in the collection currently is. Stored verbatim on
+// LegoSet.status; the first entry is the default for newly-proposed sets.
+export const LEGOSET_STATUSES = [
+  "With Bricks & Minifigs",
+  "Sold",
+  "Recovered",
+] as const;
+
+export type LegoSetStatus = (typeof LEGOSET_STATUSES)[number];
+
+const usd = new Intl.NumberFormat("en-US", {
+  style: "currency",
+  currency: "USD",
+  maximumFractionDigits: 0,
+});
+
+/** Format a whole-dollar amount, e.g. 12999 → "$12,999". */
+export function fmtMoney(value: number): string {
+  return usd.format(value);
+}
+
 export function fmtDate(iso: string) {
   const [y, m, d] = iso.split("-").map(Number);
   const mon = [

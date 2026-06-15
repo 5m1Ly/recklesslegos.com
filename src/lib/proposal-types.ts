@@ -2,6 +2,7 @@
 // types. The server-only apply/coerce logic lives in src/lib/proposals.ts.
 
 import {
+  LEGOSET_STATUSES,
   PLATFORM_META,
   SIDE_META,
   type SubmissionOp,
@@ -13,7 +14,8 @@ export type ProposalType =
   | "bodycam"
   | "document"
   | "social"
-  | "person";
+  | "person"
+  | "legoset";
 
 export const PROPOSAL_TYPE_KEYS: ProposalType[] = [
   "video",
@@ -21,6 +23,7 @@ export const PROPOSAL_TYPE_KEYS: ProposalType[] = [
   "document",
   "social",
   "person",
+  "legoset",
 ];
 
 export function isProposalType(v: string): v is ProposalType {
@@ -245,6 +248,63 @@ export const PROPOSAL_TYPES: Record<ProposalType, ProposalTypeDef> = {
       { key: "bio", label: "Bio", kind: "textarea", maxLen: 2000 },
       { key: "verified", label: "Verified", kind: "boolean" },
       { key: "orgFlag", label: "Organization account", kind: "boolean" },
+    ],
+  },
+  legoset: {
+    type: "legoset",
+    label: "LEGO set",
+    plural: "Collection",
+    basePath: "/collection",
+    idPrefix: "ls",
+    labelOf: (p) =>
+      [p.name, p.setNumber ? `(#${p.setNumber})` : ""]
+        .filter(Boolean)
+        .join(" ") || "Untitled set",
+    fields: [
+      {
+        key: "name",
+        label: "Set name",
+        kind: "text",
+        required: true,
+        maxLen: 200,
+      },
+      {
+        key: "setNumber",
+        label: "Set number",
+        kind: "text",
+        hint: "e.g. 75192",
+        maxLen: 30,
+      },
+      { key: "year", label: "Year", kind: "number" },
+      { key: "pieces", label: "Pieces", kind: "number" },
+      {
+        key: "retailPrice",
+        label: "Original retail price (USD)",
+        kind: "number",
+        hint: "Whole dollars",
+      },
+      {
+        key: "currentValue",
+        label: "Current value (USD)",
+        kind: "number",
+        required: true,
+        hint: "Whole dollars",
+      },
+      {
+        key: "status",
+        label: "Status",
+        kind: "select",
+        required: true,
+        options: [...LEGOSET_STATUSES],
+      },
+      {
+        key: "soldPrice",
+        label: "Sold price (USD)",
+        kind: "number",
+        hint: "If sold — whole dollars",
+      },
+      { key: "imageUrl", label: "Image URL", kind: "url" },
+      { key: "notes", label: "Notes", kind: "textarea", maxLen: 2000 },
     ],
   },
 };

@@ -164,6 +164,29 @@ export async function applyProposal(
         await tx.person.update({ where: { id: targetId }, data });
       return;
     }
+    case "legoset": {
+      if (op === "remove") {
+        if (targetId) await tx.legoSet.delete({ where: { id: targetId } });
+        return;
+      }
+      const data = {
+        name: str(p.name),
+        setNumber: str(p.setNumber),
+        year: int(p.year),
+        pieces: int(p.pieces),
+        retailPrice: int(p.retailPrice),
+        currentValue: int(p.currentValue),
+        status: str(p.status),
+        soldPrice: int(p.soldPrice),
+        imageUrl: nurl(p.imageUrl),
+        notes: str(p.notes),
+      };
+      if (op === "add")
+        await tx.legoSet.create({ data: { id: genId("ls"), ...data } });
+      else if (targetId)
+        await tx.legoSet.update({ where: { id: targetId }, data });
+      return;
+    }
   }
 }
 
@@ -187,5 +210,7 @@ export async function loadContentRow(
       return prisma.socialPost.findUnique({ where: { id } });
     case "person":
       return prisma.person.findUnique({ where: { id } });
+    case "legoset":
+      return prisma.legoSet.findUnique({ where: { id } });
   }
 }

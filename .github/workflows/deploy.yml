@@ -42,6 +42,7 @@ jobs:
           SMTP_PASS=${{ secrets.SMTP_PASS }}
           SMTP_FROM=${{ secrets.SMTP_FROM }}
           YOUTUBE_API_KEY=${{ secrets.YOUTUBE_API_KEY }}
+          BRICKECONOMY_API_KEY=${{ secrets.BRICKECONOMY_API_KEY }}
           CRON_SECRET=${{ secrets.CRON_SECRET }}
           EOF
 

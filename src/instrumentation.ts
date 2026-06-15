@@ -5,4 +5,6 @@ export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return;
   const { startYouTubeCron } = await import("@/lib/youtube-cron");
   startYouTubeCron();
+  const { startLegoCron } = await import("@/lib/lego-cron");
+  startLegoCron();
 }

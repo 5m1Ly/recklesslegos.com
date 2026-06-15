@@ -47,4 +47,4 @@ next-env.d.ts
 /public/media/bodycam/
 
 # Large source archives from Bryan (zips of documents/photos) — too big for git
-/data/
+/data/*.zip

@@ -8,6 +8,7 @@ import { Icons } from "./icons";
 const NAV_ITEMS: [string, string][] = [
   ["/", "Home"],
   ["/timeline", "Timeline"],
+  ["/collection", "Collection"],
   ["/videos", "Videos"],
   ["/bodycam", "Bodycam"],
   ["/documents", "Documents"],

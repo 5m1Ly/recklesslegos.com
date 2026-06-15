@@ -37,6 +37,10 @@ async function main() {
   });
   await prisma.event.deleteMany();
   await prisma.person.deleteMany();
+  // Preserve ls_* sets added via accepted proposals (genId prefix "ls").
+  await prisma.legoSet.deleteMany({
+    where: { NOT: { id: { startsWith: "ls_" } } },
+  });
 
   // People
   await prisma.person.createMany({
@@ -652,6 +656,119 @@ async function main() {
         dur: "—",
         views: "—",
         url: null,
+      },
+    ],
+  });
+
+  // Bryan Mansell's LEGO Star Wars collection. Current values are approximate
+  // secondary-market figures and can be edited/refreshed later; `status` tracks
+  // where each set ended up. Ids use a hyphen so accepted proposals (ls_*) are
+  // preserved across reseeds.
+  await prisma.legoSet.createMany({
+    data: [
+      {
+        id: "ls-75192",
+        name: "Millennium Falcon (UCS)",
+        setNumber: "75192",
+        year: 2017,
+        pieces: 7541,
+        retailPrice: 850,
+        currentValue: 1100,
+        status: "With Bricks & Minifigs",
+      },
+      {
+        id: "ls-10179",
+        name: "Millennium Falcon (UCS, first edition)",
+        setNumber: "10179",
+        year: 2007,
+        pieces: 5195,
+        retailPrice: 500,
+        currentValue: 4200,
+        status: "With Bricks & Minifigs",
+      },
+      {
+        id: "ls-75313",
+        name: "AT-AT (UCS)",
+        setNumber: "75313",
+        year: 2021,
+        pieces: 6785,
+        retailPrice: 800,
+        currentValue: 900,
+        status: "With Bricks & Minifigs",
+      },
+      {
+        id: "ls-75252",
+        name: "Imperial Star Destroyer (UCS)",
+        setNumber: "75252",
+        year: 2019,
+        pieces: 4784,
+        retailPrice: 700,
+        currentValue: 1050,
+        status: "Sold",
+        soldPrice: 600,
+      },
+      {
+        id: "ls-10143",
+        name: "Death Star II",
+        setNumber: "10143",
+        year: 2005,
+        pieces: 3441,
+        retailPrice: 270,
+        currentValue: 3800,
+        status: "Sold",
+        soldPrice: 2400,
+      },
+      {
+        id: "ls-10030",
+        name: "Imperial Star Destroyer (UCS, 2002)",
+        setNumber: "10030",
+        year: 2002,
+        pieces: 3104,
+        retailPrice: 270,
+        currentValue: 2600,
+        status: "Sold",
+        soldPrice: 1500,
+      },
+      {
+        id: "ls-75059",
+        name: "Sandcrawler (UCS)",
+        setNumber: "75059",
+        year: 2014,
+        pieces: 3296,
+        retailPrice: 300,
+        currentValue: 1900,
+        status: "With Bricks & Minifigs",
+      },
+      {
+        id: "ls-10221",
+        name: "Super Star Destroyer",
+        setNumber: "10221",
+        year: 2011,
+        pieces: 3152,
+        retailPrice: 400,
+        currentValue: 1300,
+        status: "Recovered",
+      },
+      {
+        id: "ls-75060",
+        name: "Slave I (UCS)",
+        setNumber: "75060",
+        year: 2015,
+        pieces: 1996,
+        retailPrice: 200,
+        currentValue: 700,
+        status: "Recovered",
+      },
+      {
+        id: "ls-75827",
+        name: "Ghostbusters Firehouse (themed display piece)",
+        setNumber: "75827",
+        year: 2016,
+        pieces: 4634,
+        retailPrice: 350,
+        currentValue: 650,
+        status: "Sold",
+        soldPrice: 420,
       },
     ],
   });

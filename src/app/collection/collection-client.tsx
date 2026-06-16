@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { AdminItemControls } from "@/components/admin-content";
 import type { LegoMinifig, LegoSet } from "@/generated/prisma/client";
 import { fmtMoney, LEGOSET_STATUSES, type LegoSetStatus } from "@/lib/types";
 
@@ -229,7 +230,15 @@ function SetCard({ set: s }: { set: LegoSet }) {
           </p>
         ) : null}
 
-        <div style={{ display: "flex", gap: 14, marginTop: 14 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 14,
+            marginTop: 14,
+            flexWrap: "wrap",
+            alignItems: "center",
+          }}
+        >
           <Link
             href={`/propose/legoset?op=edit&id=${s.id}`}
             className="mono-sm"
@@ -244,6 +253,7 @@ function SetCard({ set: s }: { set: LegoSet }) {
           >
             Propose removal
           </Link>
+          <AdminItemControls type="legoset" id={s.id} row={s} />
         </div>
       </div>
     </div>

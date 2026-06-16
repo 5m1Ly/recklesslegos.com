@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminAddButton } from "@/components/admin-content";
 import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
@@ -78,10 +79,18 @@ export default async function CollectionPage() {
               </div>
             ))}
           </div>
-          <div style={{ marginTop: 18 }}>
+          <div
+            style={{
+              marginTop: 18,
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <Link href="/propose/legoset?op=add" className="btn btn-ghost">
               + Propose a set
             </Link>
+            <AdminAddButton type="legoset" />
           </div>
         </PageHead>
         <CollectionClient sets={sets} minifigs={minifigs} />

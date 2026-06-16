@@ -9,6 +9,7 @@ import {
   logoutContributor,
   recordConsent,
 } from "@/app/propose/actions";
+import { useAdmin } from "@/components/admin-provider";
 import { actionErrorMessage } from "@/lib/stale-action";
 import {
   fmtDate,
@@ -18,6 +19,7 @@ import {
   type SubmissionOp,
 } from "@/lib/types";
 import {
+  applyAdminTimelineChange,
   finalizeSubmission,
   sendContribCode,
   startSubmission,
@@ -49,6 +51,7 @@ const OP_LABELS: Record<SubmissionOp, string> = {
 };
 
 export function ContributeClient({ op, initial, refOptions }: Props) {
+  const isAdmin = useAdmin();
   const [step, setStep] = useState<Step>("compose");
   const [date, setDate] = useState(initial?.date ?? "");
   const [title, setTitle] = useState(initial?.title ?? "");
@@ -125,6 +128,32 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     : date.trim() !== "" && title.trim() !== "" && description.trim() !== "";
 
   // ── Step transitions ────────────────────────────────────────────────────
+
+  // Admins skip the email-verification + moderation flow entirely: the change
+  // is applied to the timeline immediately.
+  const handleAdminPublish = () => {
+    setError(null);
+    startTransition(async () => {
+      try {
+        const res = await applyAdminTimelineChange({
+          op,
+          targetId: initial?.id ?? null,
+          date,
+          title,
+          description,
+          ongoing,
+          refs,
+        });
+        if (!res.ok) {
+          setError(res.error ?? "Couldn't publish the change.");
+          return;
+        }
+        setStep("done");
+      } catch (e) {
+        setError(actionErrorMessage(e));
+      }
+    });
+  };
 
   const handleContinue = () => {
     setError(null);
@@ -251,14 +280,20 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
     return (
       <div className="card card-pad">
         <h3 className="h-card" style={{ marginBottom: 10 }}>
-          Submitted for review ✓
+          {isAdmin ? "Change published ✓" : "Submitted for review ✓"}
         </h3>
         <p className="body-txt" style={{ margin: "0 0 16px" }}>
-          Thanks — your proposed change is now in the moderation queue. A
-          moderator will review it before it appears on the timeline.
-          {wantsUpdates
-            ? " Because you opted in, we'll email you when it's decided."
-            : ""}
+          {isAdmin ? (
+            "Your change is now live on the timeline."
+          ) : (
+            <>
+              Thanks — your proposed change is now in the moderation queue. A
+              moderator will review it before it appears on the timeline.
+              {wantsUpdates
+                ? " Because you opted in, we'll email you when it's decided."
+                : ""}
+            </>
+          )}
         </p>
         <Link href="/timeline" className="btn btn-primary">
           Back to the timeline
@@ -487,9 +522,17 @@ export function ContributeClient({ op, initial, refOptions }: Props) {
               type="button"
               className="btn btn-primary"
               disabled={!composeValid || pending}
-              onClick={handleContinue}
+              onClick={isAdmin ? handleAdminPublish : handleContinue}
             >
-              {pending ? "Saving…" : "Save & continue"}
+              {pending
+                ? isAdmin
+                  ? "Publishing…"
+                  : "Saving…"
+                : isAdmin
+                  ? isRemove
+                    ? "Delete event"
+                    : "Publish"
+                  : "Save & continue"}
             </button>
             <Link href="/timeline" className="btn btn-ghost">
               Cancel

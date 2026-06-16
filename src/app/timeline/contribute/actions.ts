@@ -1,5 +1,7 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
+import { requireAdmin } from "@/lib/admin-auth";
 import {
   CODE_TTL_MINUTES,
   codeExpiry,
@@ -225,5 +227,68 @@ export async function finalizeSubmission(
     console.error("[submission] admin notify failed:", err);
   }
 
+  return { ok: true };
+}
+
+/**
+ * Admin shortcut — apply a timeline change directly, with no email verification
+ * or moderation queue. Gated by requireAdmin(); mirrors the timeline branch of
+ * decideSubmission (src/app/admin/actions.ts). The admin analogue of
+ * applyAdminContentChange for the registry-backed content types.
+ */
+export async function applyAdminTimelineChange(
+  input: ContribInput,
+): Promise<ActionResult> {
+  try {
+    await requireAdmin();
+  } catch {
+    return { ok: false, error: "You must be signed in as an admin." };
+  }
+
+  const err = validateInput(input);
+  if (err) return { ok: false, error: err };
+
+  if ((input.op === "edit" || input.op === "remove") && input.targetId) {
+    const exists = await prisma.timelineEntry.findUnique({
+      where: { id: input.targetId },
+      select: { id: true },
+    });
+    if (!exists)
+      return { ok: false, error: "That timeline entry no longer exists." };
+  }
+
+  if (input.op !== "remove" && !(await validateRefs(input.refs)))
+    return { ok: false, error: "One or more references are invalid." };
+
+  await prisma.$transaction(async (tx) => {
+    if (input.op === "add") {
+      await tx.timelineEntry.create({
+        data: {
+          date: input.date,
+          title: input.title,
+          description: input.description,
+          ongoing: input.ongoing,
+          refs: { create: input.refs },
+        },
+      });
+    } else if (input.op === "edit" && input.targetId) {
+      await tx.timelineRef.deleteMany({ where: { entryId: input.targetId } });
+      await tx.timelineEntry.update({
+        where: { id: input.targetId },
+        data: {
+          date: input.date,
+          title: input.title,
+          description: input.description,
+          ongoing: input.ongoing,
+          refs: { create: input.refs },
+        },
+      });
+    } else if (input.op === "remove" && input.targetId) {
+      await tx.timelineEntry.deleteMany({ where: { id: input.targetId } });
+    }
+  });
+
+  revalidatePath("/timeline");
+  revalidatePath("/");
   return { ok: true };
 }

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminAddButton } from "@/components/admin-content";
 import { Footer } from "@/components/footer";
 import { Icons } from "@/components/icons";
 import { Nav } from "@/components/nav";
@@ -64,10 +65,18 @@ export default async function PeoplePage() {
               fictional.
             </p>
           </div>
-          <div style={{ marginTop: 18 }}>
+          <div
+            style={{
+              marginTop: 18,
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <Link href="/propose/person?op=add" className="btn btn-ghost">
               + Propose an addition
             </Link>
+            <AdminAddButton type="person" />
           </div>
         </PageHead>
         <PeopleClient people={people} />

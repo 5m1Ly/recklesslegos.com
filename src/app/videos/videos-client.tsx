@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminItemControls } from "@/components/admin-content";
 import { Icons } from "@/components/icons";
 import { MediaModal } from "@/components/media-modal";
 import type { Event } from "@/lib/types";
@@ -192,7 +193,15 @@ export function VideosClient({ videos }: { videos: VideoWithEvent[] }) {
             </div>
             <div className="grid-3">
               {vids.map((v) => (
-                <VideoCard key={v.id} v={v} onOpen={setModal} />
+                <div key={v.id}>
+                  <VideoCard v={v} onOpen={setModal} />
+                  <AdminItemControls
+                    type="video"
+                    id={v.id}
+                    row={v}
+                    style={{ marginTop: 8, padding: "0 2px" }}
+                  />
+                </div>
               ))}
             </div>
           </section>

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminAddButton } from "@/components/admin-content";
 import { Footer } from "@/components/footer";
 import { Icons } from "@/components/icons";
 import { Nav } from "@/components/nav";
@@ -50,10 +51,18 @@ export default async function BodycamPage() {
               American Fork, Utah
             </span>
           </div>
-          <div style={{ marginTop: 18 }}>
+          <div
+            style={{
+              marginTop: 18,
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <Link href="/propose/bodycam?op=add" className="btn btn-ghost">
               + Propose an addition
             </Link>
+            <AdminAddButton type="bodycam" />
           </div>
         </PageHead>
         <BodycamClient bodycam={bodycam} />

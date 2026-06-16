@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AdminItemControls } from "@/components/admin-content";
 import { Avatar } from "@/components/avatar";
 import { Icons } from "@/components/icons";
 import { type Person, SIDE_META, type Side } from "@/lib/types";
@@ -99,7 +100,15 @@ export function PeopleClient({ people }: { people: PersonWithEventCount[] }) {
       </div>
       <div className="grid-3">
         {rows.map((p) => (
-          <PersonCard key={p.id} p={p} />
+          <div key={p.id}>
+            <PersonCard p={p} />
+            <AdminItemControls
+              type="person"
+              id={p.id}
+              row={p}
+              style={{ marginTop: 8, padding: "0 2px" }}
+            />
+          </div>
         ))}
       </div>
       <div style={{ height: 30 }} />

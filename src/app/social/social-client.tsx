@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AdminItemControls } from "@/components/admin-content";
 import { Icons } from "@/components/icons";
 import {
   type Event,
@@ -203,6 +204,12 @@ function PostCard({ s }: { s: SocialPostWithEvent }) {
           </Link>
         )}
       </div>
+      <AdminItemControls
+        type="social"
+        id={s.id}
+        row={s}
+        style={{ justifyContent: "flex-end" }}
+      />
     </div>
   );
 }

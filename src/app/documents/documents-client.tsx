@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminItemControls } from "@/components/admin-content";
 import { DocViewer } from "@/components/doc-viewer";
 import { Icons } from "@/components/icons";
 import { type Document, type Event, fmtDate } from "@/lib/types";
@@ -151,7 +152,15 @@ export function DocumentsClient({
       </div>
       <div className="grid-2">
         {rows.map((d) => (
-          <DocCard key={d.id} d={d} onOpen={setViewer} />
+          <div key={d.id}>
+            <DocCard d={d} onOpen={setViewer} />
+            <AdminItemControls
+              type="document"
+              id={d.id}
+              row={d}
+              style={{ marginTop: 8, padding: "0 2px" }}
+            />
+          </div>
         ))}
       </div>
       {rows.length === 0 && (

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminAddButton } from "@/components/admin-content";
 import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
@@ -32,10 +33,18 @@ export default async function VideosPage() {
           title="Video archive"
           sub="Every video in the record, grouped by source — from the creator's own uploads to official footage, corporate statements, and outside coverage. Demo embeds are placeholders."
         >
-          <div style={{ marginTop: 18 }}>
+          <div
+            style={{
+              marginTop: 18,
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <Link href="/propose/video?op=add" className="btn btn-ghost">
               + Propose an addition
             </Link>
+            <AdminAddButton type="video" />
           </div>
         </PageHead>
         <VideosClient videos={videos} />

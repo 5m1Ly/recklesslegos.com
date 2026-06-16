@@ -1,6 +1,8 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Spectral } from "next/font/google";
+import { AdminProvider } from "@/components/admin-provider";
+import { getAdminFromCookie } from "@/lib/admin-auth";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
 
@@ -64,11 +66,13 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const isAdmin = !!(await getAdminFromCookie());
+
   return (
     <html
       lang="en"
@@ -81,7 +85,9 @@ export default function RootLayout({
         } as React.CSSProperties
       }
     >
-      <body>{children}</body>
+      <body>
+        <AdminProvider isAdmin={isAdmin}>{children}</AdminProvider>
+      </body>
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );

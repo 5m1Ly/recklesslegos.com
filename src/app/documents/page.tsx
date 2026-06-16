@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { AdminAddButton } from "@/components/admin-content";
 import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
@@ -46,10 +47,18 @@ export default async function DocumentsPage() {
           title="Document archive"
           sub="Court filings, police reports, FOIA releases, correspondence, and public records — each OCR-indexed, tagged, and linked to the events it documents."
         >
-          <div style={{ marginTop: 18 }}>
+          <div
+            style={{
+              marginTop: 18,
+              display: "flex",
+              gap: 12,
+              flexWrap: "wrap",
+            }}
+          >
             <Link href="/propose/document?op=add" className="btn btn-ghost">
               + Propose an addition
             </Link>
+            <AdminAddButton type="document" />
           </div>
         </PageHead>
         <DocumentsClient documents={documents} docTypes={docTypes} />

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AdminItemControls } from "@/components/admin-content";
 import { Icons } from "@/components/icons";
 import { MediaModal } from "@/components/media-modal";
 import { type Bodycam, type Event, fmtDate } from "@/lib/types";
@@ -67,77 +68,94 @@ export function BodycamClient({ bodycam }: { bodycam: BodycamWithEvent[] }) {
               </span>
             </div>
             {rows.map((b, i) => (
-              <button
+              <div
                 key={b.id}
-                type="button"
-                onClick={() => setModal(b)}
-                className="bc-row"
                 style={{
-                  padding: "14px 16px",
-                  cursor: "pointer",
-                  width: "100%",
-                  background: "transparent",
-                  border: "none",
                   borderBottom:
                     i < rows.length - 1 ? "1px solid var(--line)" : "none",
-                  textAlign: "left",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.background = "rgba(255,255,255,0.02)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.background = "transparent";
                 }}
               >
-                <div
-                  className="ph bc-preview"
+                <button
+                  type="button"
+                  onClick={() => setModal(b)}
+                  className="bc-row"
                   style={{
-                    width: 72,
-                    height: 44,
-                    borderRadius: 3,
-                    position: "relative",
+                    padding: "14px 16px",
+                    cursor: "pointer",
+                    width: "100%",
+                    background: "transparent",
+                    border: "none",
+                    textAlign: "left",
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.02)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "transparent";
                   }}
                 >
                   <div
-                    className="play-badge"
-                    style={{ position: "static", width: 24, height: 24 }}
-                  >
-                    <Icons.play style={{ width: 10, height: 10 }} />
-                  </div>
-                </div>
-                <div style={{ minWidth: 0 }}>
-                  <div
+                    className="ph bc-preview"
                     style={{
-                      fontSize: 14.5,
-                      color: "var(--tx-0)",
-                      marginBottom: 4,
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
+                      width: 72,
+                      height: 44,
+                      borderRadius: 3,
+                      position: "relative",
                     }}
                   >
-                    {b.title}
+                    <div
+                      className="play-badge"
+                      style={{ position: "static", width: 24, height: 24 }}
+                    >
+                      <Icons.play style={{ width: 10, height: 10 }} />
+                    </div>
                   </div>
-                  <div className="mono-sm" style={{ display: "flex", gap: 12 }}>
-                    <span>
-                      {fmtDate(b.date)} · {b.time}
-                    </span>
-                    <span style={{ color: "var(--tx-3)" }}>{b.type}</span>
+                  <div style={{ minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: 14.5,
+                        color: "var(--tx-0)",
+                        marginBottom: 4,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {b.title}
+                    </div>
+                    <div
+                      className="mono-sm"
+                      style={{ display: "flex", gap: 12 }}
+                    >
+                      <span>
+                        {fmtDate(b.date)} · {b.time}
+                      </span>
+                      <span style={{ color: "var(--tx-3)" }}>{b.type}</span>
+                    </div>
                   </div>
-                </div>
-                <div className="bc-officer">
-                  <div style={{ fontSize: 13, color: "var(--tx-1)" }}>
-                    {b.officer}
+                  <div className="bc-officer">
+                    <div style={{ fontSize: 13, color: "var(--tx-1)" }}>
+                      {b.officer}
+                    </div>
+                    <div className="mono-sm">Unit {b.unit}</div>
                   </div>
-                  <div className="mono-sm">Unit {b.unit}</div>
-                </div>
-                <div
-                  className="mono-sm tnum"
-                  style={{ textAlign: "right", color: "var(--tx-1)" }}
-                >
-                  {b.dur}
-                </div>
-              </button>
+                  <div
+                    className="mono-sm tnum"
+                    style={{ textAlign: "right", color: "var(--tx-1)" }}
+                  >
+                    {b.dur}
+                  </div>
+                </button>
+                <AdminItemControls
+                  type="bodycam"
+                  id={b.id}
+                  row={b}
+                  style={{
+                    padding: "0 16px 12px",
+                    justifyContent: "flex-end",
+                  }}
+                />
+              </div>
             ))}
             {rows.length === 0 && (
               <div

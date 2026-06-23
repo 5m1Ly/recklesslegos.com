@@ -1,5 +1,20 @@
 import "server-only";
 import type { PrismaClient } from "@/generated/prisma/client";
+import {
+  CIDisposition,
+  CIECondition,
+  CIELocation,
+  CIESource,
+  CISubthemes,
+  CIType,
+} from "@/generated/prisma/enums";
+import {
+  COLLECTION_DESCRIPTION,
+  COLLECTION_ID,
+  COLLECTION_TITLE,
+  itemToFormValues,
+  recomputeCollectionTotals,
+} from "@/lib/collection";
 import type { ProposalType } from "@/lib/proposal-types";
 import type { SubmissionOp } from "@/lib/types";
 
@@ -29,6 +44,55 @@ const tags = (v: unknown): string[] => {
     .map((t) => t.trim())
     .filter(Boolean);
 };
+/** Coerce a form string to an enum value, falling back when it isn't a member. */
+const enumVal = <T extends Record<string, string>>(
+  v: unknown,
+  members: T,
+  fallback: T[keyof T],
+): T[keyof T] => {
+  const s = str(v);
+  return (Object.values(members) as string[]).includes(s)
+    ? (s as T[keyof T])
+    : fallback;
+};
+
+const asObj = (v: unknown): Record<string, unknown> =>
+  v && typeof v === "object" ? (v as Record<string, unknown>) : {};
+
+/** Coerce one CollectionItemEntry row from the admin editor's structured payload. */
+function coerceEntry(raw: unknown) {
+  const e = asObj(raw);
+  return {
+    id: typeof e.id === "string" && e.id ? e.id : undefined,
+    data: {
+      condition: enumVal(e.condition, CIECondition, "USED"),
+      location: enumVal(e.location, CIELocation, "STORE"),
+      disposition: enumVal(e.disposition, CIDisposition, "HELD"),
+      isCrack: bool(e.isCrack),
+      isBuild: bool(e.isBuild),
+      isBuildWOFigs: bool(e.isBuildWOFigs),
+      costPrice: int(e.costPrice),
+      displayPrice: int(e.displayPrice),
+      sellPrice: int(e.sellPrice),
+    },
+  };
+}
+
+/** Coerce one CollectionItemEvaluation row from the structured payload. */
+function coerceEval(raw: unknown) {
+  const v = asObj(raw);
+  return {
+    id: typeof v.id === "string" && v.id ? v.id : undefined,
+    source: enumVal(v.source, CIESource, "MANUAL"),
+    data: {
+      value: int(v.value),
+      valueLow: int(v.valueLow),
+      valueHigh: int(v.valueHigh),
+      retail: int(v.retail),
+      note: str(v.note),
+    },
+  };
+}
 
 /** Generate a collision-safe id for a newly created content row. */
 function genId(prefix: string): string {
@@ -166,25 +230,204 @@ export async function applyProposal(
     }
     case "legoset": {
       if (op === "remove") {
-        if (targetId) await tx.legoSet.delete({ where: { id: targetId } });
+        // Entries + evaluations cascade on delete (see collection.prisma).
+        if (targetId)
+          await tx.collectionItem.delete({ where: { id: targetId } });
+        if (targetId) await recomputeCollectionTotals(tx, COLLECTION_ID);
         return;
       }
-      const data = {
+
+      // The collection container must exist before items attach to it.
+      await tx.collection.upsert({
+        where: { id: COLLECTION_ID },
+        update: {},
+        create: {
+          id: COLLECTION_ID,
+          title: COLLECTION_TITLE,
+          description: COLLECTION_DESCRIPTION,
+        },
+      });
+
+      const itemData = {
         name: str(p.name),
-        setNumber: str(p.setNumber),
+        legoRef: str(p.legoRef),
+        type: enumVal(p.type, CIType, "SET"),
+        subtheme: enumVal(p.subtheme, CISubthemes, "STARWARS"),
         year: int(p.year),
         pieces: int(p.pieces),
-        retailPrice: int(p.retailPrice),
-        currentValue: int(p.currentValue),
-        status: str(p.status),
-        soldPrice: int(p.soldPrice),
         imageUrl: nurl(p.imageUrl),
         notes: str(p.notes),
       };
-      if (op === "add")
-        await tx.legoSet.create({ data: { id: genId("ls"), ...data } });
-      else if (targetId)
-        await tx.legoSet.update({ where: { id: targetId }, data });
+
+      // ── Structured payload (admin editor): full lists of entries + sources ──
+      if (Array.isArray(p.entries) || Array.isArray(p.evaluations)) {
+        const entries = (Array.isArray(p.entries) ? p.entries : []).map(
+          coerceEntry,
+        );
+        const evals = (Array.isArray(p.evaluations) ? p.evaluations : []).map(
+          coerceEval,
+        );
+        const autoEvaluate =
+          p.autoEvaluate == null ? true : bool(p.autoEvaluate);
+
+        let id: string;
+        if (op === "add") {
+          id = genId("ls");
+          await tx.collectionItem.create({
+            data: {
+              id,
+              collectionId: COLLECTION_ID,
+              autoEvaluate,
+              ...itemData,
+            },
+          });
+        } else if (targetId) {
+          id = targetId;
+          await tx.collectionItem.update({
+            where: { id },
+            data: { ...itemData, autoEvaluate },
+          });
+        } else {
+          return;
+        }
+
+        // Sync entries: delete the ones the editor dropped, update the rest,
+        // create the new (id-less) ones. One entry = one owned copy.
+        const keepEntryIds = entries
+          .map((e) => e.id)
+          .filter((x): x is string => !!x);
+        await tx.collectionItemEntry.deleteMany({
+          where: {
+            itemId: id,
+            ...(keepEntryIds.length ? { id: { notIn: keepEntryIds } } : {}),
+          },
+        });
+        for (const e of entries) {
+          if (e.id)
+            await tx.collectionItemEntry.update({
+              where: { id: e.id },
+              data: e.data,
+            });
+          else
+            await tx.collectionItemEntry.create({
+              data: { itemId: id, ...e.data },
+            });
+        }
+
+        // Sync evaluations (one row per source; CONTRIBUTORS may repeat).
+        const keepEvalIds = evals
+          .map((e) => e.id)
+          .filter((x): x is string => !!x);
+        await tx.collectionItemEvaluation.deleteMany({
+          where: {
+            itemId: id,
+            ...(keepEvalIds.length ? { id: { notIn: keepEvalIds } } : {}),
+          },
+        });
+        for (const ev of evals) {
+          if (ev.id)
+            await tx.collectionItemEvaluation.update({
+              where: { id: ev.id },
+              data: { source: ev.source, ...ev.data },
+            });
+          else
+            await tx.collectionItemEvaluation.create({
+              data: { itemId: id, source: ev.source, ...ev.data },
+            });
+        }
+
+        await recomputeCollectionTotals(tx, COLLECTION_ID);
+        return;
+      }
+
+      // ── Flat payload (public propose flow): item + 1 entry + 1 reading ──
+      const entryData = {
+        condition: enumVal(p.condition, CIECondition, "USED"),
+        location: enumVal(p.location, CIELocation, "STORE"),
+        disposition: enumVal(p.disposition, CIDisposition, "HELD"),
+        isCrack: bool(p.isCrack),
+        isBuild: bool(p.isBuild),
+        isBuildWOFigs: bool(p.isBuildWOFigs),
+        costPrice: int(p.costPrice),
+        displayPrice: int(p.displayPrice),
+        sellPrice: int(p.sellPrice),
+      };
+
+      // The single price reading on the form. A BrickEconomy value entered by
+      // hand is a manual override → flip autoEvaluate off so the cron leaves it.
+      const evalSource = enumVal(p.evalSource, CIESource, "BRICKECONOMY");
+      const evalData = {
+        value: int(p.value),
+        valueLow: int(p.valueLow),
+        valueHigh: int(p.valueHigh),
+        note: str(p.evalNote),
+      };
+      const hasEval =
+        evalData.value > 0 || evalData.valueLow > 0 || evalData.valueHigh > 0;
+      const manualBrickeconomy = hasEval && evalSource === "BRICKECONOMY";
+
+      let itemId: string;
+      if (op === "add") {
+        itemId = genId("ls");
+        await tx.collectionItem.create({
+          data: {
+            id: itemId,
+            collectionId: COLLECTION_ID,
+            autoEvaluate: !manualBrickeconomy,
+            ...itemData,
+            entries: { create: [entryData] },
+          },
+        });
+      } else if (targetId) {
+        itemId = targetId;
+        await tx.collectionItem.update({
+          where: { id: itemId },
+          data: {
+            ...itemData,
+            ...(manualBrickeconomy ? { autoEvaluate: false } : {}),
+          },
+        });
+        // Update the primary (oldest) entry, or create one if none exists yet.
+        const primary = await tx.collectionItemEntry.findFirst({
+          where: { itemId },
+          orderBy: { createdAt: "asc" },
+          select: { id: true },
+        });
+        if (primary)
+          await tx.collectionItemEntry.update({
+            where: { id: primary.id },
+            data: entryData,
+          });
+        else
+          await tx.collectionItemEntry.create({
+            data: { itemId, ...entryData },
+          });
+      } else {
+        return;
+      }
+
+      if (hasEval) {
+        // Contributor suggestions accrue (one row each); every other source keeps
+        // a single row per item that we update in place.
+        const existing =
+          evalSource === "CONTRIBUTORS"
+            ? null
+            : await tx.collectionItemEvaluation.findFirst({
+                where: { itemId, source: evalSource },
+                select: { id: true },
+              });
+        if (existing)
+          await tx.collectionItemEvaluation.update({
+            where: { id: existing.id },
+            data: evalData,
+          });
+        else
+          await tx.collectionItemEvaluation.create({
+            data: { itemId, source: evalSource, ...evalData },
+          });
+      }
+
+      await recomputeCollectionTotals(tx, COLLECTION_ID);
       return;
     }
   }
@@ -210,7 +453,15 @@ export async function loadContentRow(
       return prisma.socialPost.findUnique({ where: { id } });
     case "person":
       return prisma.person.findUnique({ where: { id } });
-    case "legoset":
-      return prisma.legoSet.findUnique({ where: { id } });
+    case "legoset": {
+      const item = await prisma.collectionItem.findUnique({
+        where: { id },
+        include: {
+          entries: { orderBy: { createdAt: "asc" } },
+          evaluations: true,
+        },
+      });
+      return item ? itemToFormValues(item) : null;
+    }
   }
 }

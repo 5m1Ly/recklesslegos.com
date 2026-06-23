@@ -2,7 +2,14 @@
 // types. The server-only apply/coerce logic lives in src/lib/proposals.ts.
 
 import {
-  LEGOSET_STATUSES,
+  CIDisposition,
+  CIECondition,
+  CIELocation,
+  CIESource,
+  CISubthemes,
+  CIType,
+} from "@/generated/prisma/enums";
+import {
   PLATFORM_META,
   SIDE_META,
   type SubmissionOp,
@@ -71,6 +78,15 @@ const VIDEO_PLATFORMS = [
   "Facebook",
 ];
 const SIDES = Object.keys(SIDE_META);
+
+// Collection enum option lists (stored values; pretty labels live in
+// src/lib/collection.ts and drive the public-facing display, not the editor).
+const CI_TYPES = Object.values(CIType);
+const CI_SUBTHEMES = Object.values(CISubthemes);
+const CI_CONDITIONS = Object.values(CIECondition);
+const CI_LOCATIONS = Object.values(CIELocation);
+const CI_DISPOSITIONS = Object.values(CIDisposition);
+const CI_SOURCES = Object.values(CIESource);
 
 export const PROPOSAL_TYPES: Record<ProposalType, ProposalTypeDef> = {
   video: {
@@ -252,59 +268,114 @@ export const PROPOSAL_TYPES: Record<ProposalType, ProposalTypeDef> = {
   },
   legoset: {
     type: "legoset",
-    label: "LEGO set",
+    label: "LEGO item",
     plural: "Collection",
     basePath: "/collection",
     idPrefix: "ls",
     labelOf: (p) =>
-      [p.name, p.setNumber ? `(#${p.setNumber})` : ""]
-        .filter(Boolean)
-        .join(" ") || "Untitled set",
+      [p.name, p.legoRef ? `(#${p.legoRef})` : ""].filter(Boolean).join(" ") ||
+      "Untitled item",
     fields: [
+      // ── Item ──
       {
         key: "name",
-        label: "Set name",
+        label: "Name",
         kind: "text",
         required: true,
         maxLen: 200,
       },
       {
-        key: "setNumber",
-        label: "Set number",
+        key: "legoRef",
+        label: "Set / minifig number",
         kind: "text",
-        hint: "e.g. 75192",
+        hint: "e.g. 75192 or sw0001a",
         maxLen: 30,
+      },
+      {
+        key: "type",
+        label: "Type",
+        kind: "select",
+        required: true,
+        options: CI_TYPES,
+      },
+      {
+        key: "subtheme",
+        label: "Subtheme",
+        kind: "select",
+        options: CI_SUBTHEMES,
       },
       { key: "year", label: "Year", kind: "number" },
       { key: "pieces", label: "Pieces", kind: "number" },
+      { key: "imageUrl", label: "Image URL", kind: "url" },
+      { key: "notes", label: "Notes", kind: "textarea", maxLen: 2000 },
+      // ── Primary copy (entry) ──
       {
-        key: "retailPrice",
-        label: "Original retail price (USD)",
-        kind: "number",
-        hint: "Whole dollars",
+        key: "condition",
+        label: "Condition",
+        kind: "select",
+        options: CI_CONDITIONS,
       },
       {
-        key: "currentValue",
-        label: "Current value (USD)",
-        kind: "number",
-        required: true,
-        hint: "Whole dollars",
+        key: "location",
+        label: "Location",
+        kind: "select",
+        options: CI_LOCATIONS,
+        hint: "Physical whereabouts",
       },
       {
-        key: "status",
+        key: "disposition",
         label: "Status",
         kind: "select",
-        required: true,
-        options: [...LEGOSET_STATUSES],
+        options: CI_DISPOSITIONS,
+      },
+      { key: "isBuild", label: "Built (assembled)", kind: "boolean" },
+      {
+        key: "isBuildWOFigs",
+        label: "Built without minifigs",
+        kind: "boolean",
+      },
+      { key: "isCrack", label: "Crack / damaged", kind: "boolean" },
+      {
+        key: "costPrice",
+        label: "Cost / paid price (USD)",
+        kind: "number",
+        hint: "Whole dollars",
       },
       {
-        key: "soldPrice",
+        key: "displayPrice",
+        label: "Store display price (USD)",
+        kind: "number",
+        hint: "Whole dollars",
+      },
+      {
+        key: "sellPrice",
         label: "Sold price (USD)",
         kind: "number",
         hint: "If sold — whole dollars",
       },
-      { key: "imageUrl", label: "Image URL", kind: "url" },
-      { key: "notes", label: "Notes", kind: "textarea", maxLen: 2000 },
+      // ── One price reading (evaluation) ──
+      {
+        key: "evalSource",
+        label: "Price source",
+        kind: "select",
+        options: CI_SOURCES,
+        hint: "Where this value came from",
+      },
+      {
+        key: "value",
+        label: "Market value (USD)",
+        kind: "number",
+        hint: "Whole dollars — drives the card average + totals",
+      },
+      { key: "valueLow", label: "Low value (USD)", kind: "number" },
+      { key: "valueHigh", label: "High value (USD)", kind: "number" },
+      {
+        key: "evalNote",
+        label: "Price note",
+        kind: "text",
+        maxLen: 200,
+        hint: "Optional source/attribution note",
+      },
     ],
   },
 };

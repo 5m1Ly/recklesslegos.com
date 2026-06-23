@@ -1,6 +1,6 @@
 generator client {
   provider = "prisma-client"
-  output   = "../src/generated/prisma"
+  output   = "../../src/generated/prisma"
 }
 
 datasource db {
@@ -205,48 +205,6 @@ model AdminSession {
   createdAt DateTime @default(now())
 }
 
-// A single LEGO set in Bryan Mansell's Star Wars collection. Values are in
-// whole USD; `status` tracks where each set ended up (see LEGOSET_STATUSES).
-model LegoSet {
-  id           String   @id
-  name         String
-  setNumber    String   @default("")
-  theme        String   @default("Star Wars")
-  year         Int      @default(0)
-  pieces       Int      @default(0)
-  quantity     Int      @default(1)
-  retailPrice  Int      @default(0)
-  currentValue Int      @default(0)
-  status       String   @default("With Bricks & Minifigs")
-  soldPrice    Int      @default(0)
-  imageUrl     String?
-  notes        String   @default("")
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-}
-
-// A single LEGO minifigure in Bryan Mansell's Star Wars collection. Mirrors
-// LegoSet, but keyed by minifig number (e.g. "sw0001a") and with a quantity
-// since duplicate minifigs are common. Imported from BrickEconomy's
-// `/collection/minifigs` endpoint by prisma/seed-brickeconomy.ts; rows use the
-// "be-mf-" id prefix and are reconciled in place on re-import.
-model LegoMinifig {
-  id            String   @id
-  name          String
-  minifigNumber String   @default("")
-  theme         String   @default("Star Wars")
-  year          Int      @default(0)
-  quantity      Int      @default(1)
-  retailPrice   Int      @default(0)
-  currentValue  Int      @default(0)
-  status        String   @default("With Bricks & Minifigs")
-  soldPrice     Int      @default(0)
-  imageUrl      String?
-  notes         String   @default("")
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
-}
-
 // Persistent login for contributors: created the first time a contributor
 // verifies their email code, so subsequent add/edit/remove proposals don't
 // require re-verifying by email.
@@ -258,3 +216,6 @@ model ContributorSession {
   expiresAt DateTime
   createdAt DateTime @default(now())
 }
+
+// NOTE: the legacy LegoSet / LegoMinifig models were replaced by the Collection*
+// models in collection.prisma and dropped once their data was backfilled.

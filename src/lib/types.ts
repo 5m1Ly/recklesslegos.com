@@ -55,15 +55,8 @@ export const VIDEO_TIERS: [string, string, string][] = [
   ],
 ];
 
-// Where each LEGO set in the collection currently is. Stored verbatim on
-// LegoSet.status; the first entry is the default for newly-proposed sets.
-export const LEGOSET_STATUSES = [
-  "With Bricks & Minifigs",
-  "Sold",
-  "Recovered",
-] as const;
-
-export type LegoSetStatus = (typeof LEGOSET_STATUSES)[number];
+// LEGO collection status/location/source vocabularies + display helpers now live
+// in src/lib/collection.ts (alongside the value math), keyed by the Prisma enums.
 
 const usd = new Intl.NumberFormat("en-US", {
   style: "currency",

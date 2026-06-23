@@ -4,21 +4,28 @@ import { PrismaClient } from "../src/generated/prisma/client";
 import {
   fetchCollectionMinifigs,
   fetchCollectionSets,
-  type NormalizedMinifig,
-  type NormalizedSet,
   requireApiKey,
 } from "../src/lib/brickeconomy";
+import {
+  brickeconomyMinifigId,
+  brickeconomySetId,
+  COLLECTION_DESCRIPTION,
+  COLLECTION_ID,
+  COLLECTION_TITLE,
+  recomputeCollectionTotals,
+} from "../src/lib/collection";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Import Bryan's LEGO collection from BrickEconomy into the local DB.
 //
 //   pnpm db:seed:lego
 //
-// Idempotent: each set/minifig upserts under a deterministic "be-set-…" /
-// "be-mf-…" id, so re-running refreshes catalog data + current values in place.
-// On update we DON'T touch status/soldPrice/notes — those are curated in-app and
-// must survive a re-import. Once real sets are imported, the placeholder "ls-…"
-// sets from prisma/seed.ts are removed; community proposals ("ls_…") are kept.
+// Idempotent: each set/minifig upserts a CollectionItem under a deterministic
+// "be-set-…" / "be-mf-…" id and refreshes its BRICKECONOMY evaluation in place.
+// We DON'T touch curated data on re-import: notes, entries, and non-BrickEconomy
+// evaluations all survive. Each item is guaranteed at least one entry. Once real
+// sets land, the "ls-…" placeholders from prisma/seed.ts are removed; community
+// proposals ("ls_…") are kept.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const adapter = new PrismaPg({
@@ -26,23 +33,39 @@ const adapter = new PrismaPg({
 });
 const prisma = new PrismaClient({ adapter });
 
-/** Lowercase, hyphenated fallback id segment for rows without a catalog number. */
-function slug(s: string): string {
-  return (
-    s
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/^-+|-+$/g, "")
-      .slice(0, 48) || "unknown"
-  );
+/** Upsert the single BRICKECONOMY evaluation for an item. */
+async function upsertBrickeconomyEval(
+  itemId: string,
+  value: number,
+  retail: number,
+): Promise<void> {
+  const data = { value, retail };
+  const existing = await prisma.collectionItemEvaluation.findFirst({
+    where: { itemId, source: "BRICKECONOMY" },
+    select: { id: true },
+  });
+  if (existing) {
+    await prisma.collectionItemEvaluation.update({
+      where: { id: existing.id },
+      data,
+    });
+  } else {
+    await prisma.collectionItemEvaluation.create({
+      data: { itemId, source: "BRICKECONOMY", ...data },
+    });
+  }
 }
 
-function setId(s: NormalizedSet): string {
-  return `be-set-${slug(s.setNumber || s.name)}`;
-}
-
-function minifigId(m: NormalizedMinifig): string {
-  return `be-mf-${slug(m.minifigNumber || m.name)}`;
+/**
+ * Ensure the item carries one entry per owned copy. Top-up only: never deletes
+ * or overwrites curated per-copy entries, so re-imports are safe.
+ */
+async function ensureEntryCount(itemId: string, copies: number): Promise<void> {
+  const want = Math.max(1, copies);
+  const have = await prisma.collectionItemEntry.count({ where: { itemId } });
+  for (let n = have; n < want; n++) {
+    await prisma.collectionItemEntry.create({ data: { itemId } });
+  }
 }
 
 async function importSets(): Promise<number> {
@@ -51,31 +74,29 @@ async function importSets(): Promise<number> {
   console.log(`[brickeconomy] fetched ${sets.length} set(s)`);
 
   for (const s of sets) {
-    const id = setId(s);
-    // Catalog + market fields BrickEconomy owns. Curated fields (status,
-    // soldPrice, notes) are set only on create and never overwritten on update.
+    const id = brickeconomySetId(s.setNumber, s.name);
+    // Catalog fields BrickEconomy owns; market value goes to the evaluation.
     const sourced = {
       name: s.name,
-      setNumber: s.setNumber,
-      theme: s.theme,
+      legoRef: s.setNumber,
+      type: "SET" as const,
       year: s.year,
       pieces: s.pieces,
-      quantity: s.quantity,
-      retailPrice: s.retailPrice,
-      currentValue: s.currentValue,
       imageUrl: s.imageUrl,
     };
-    await prisma.legoSet.upsert({
+    await prisma.collectionItem.upsert({
       where: { id },
       update: sourced,
-      create: { id, ...sourced },
+      create: { id, collectionId: COLLECTION_ID, ...sourced },
     });
+    await upsertBrickeconomyEval(id, s.currentValue, s.retailPrice);
+    await ensureEntryCount(id, s.quantity);
   }
 
   // Real data has landed → drop the hardcoded placeholders from prisma/seed.ts.
   // Guarded by sets.length so a misconfigured run never empties the collection.
   if (sets.length > 0) {
-    const { count } = await prisma.legoSet.deleteMany({
+    const { count } = await prisma.collectionItem.deleteMany({
       where: { id: { startsWith: "ls-" } },
     });
     if (count)
@@ -91,32 +112,45 @@ async function importMinifigs(): Promise<number> {
   console.log(`[brickeconomy] fetched ${minifigs.length} minifig(s)`);
 
   for (const m of minifigs) {
-    const id = minifigId(m);
+    const id = brickeconomyMinifigId(m.minifigNumber, m.name);
     const sourced = {
       name: m.name,
-      minifigNumber: m.minifigNumber,
-      theme: m.theme,
+      legoRef: m.minifigNumber,
+      type: "MINIFIGURE" as const,
       year: m.year,
-      quantity: m.quantity,
-      retailPrice: m.retailPrice,
-      currentValue: m.currentValue,
       imageUrl: m.imageUrl,
     };
-    await prisma.legoMinifig.upsert({
+    await prisma.collectionItem.upsert({
       where: { id },
       update: sourced,
-      create: { id, ...sourced },
+      create: { id, collectionId: COLLECTION_ID, ...sourced },
     });
+    await upsertBrickeconomyEval(id, m.currentValue, m.retailPrice);
+    await ensureEntryCount(id, m.quantity);
   }
 
   return minifigs.length;
 }
 
+async function ensureCollection(): Promise<void> {
+  await prisma.collection.upsert({
+    where: { id: COLLECTION_ID },
+    update: { title: COLLECTION_TITLE, description: COLLECTION_DESCRIPTION },
+    create: {
+      id: COLLECTION_ID,
+      title: COLLECTION_TITLE,
+      description: COLLECTION_DESCRIPTION,
+    },
+  });
+}
+
 async function main() {
   console.log("Importing collection from BrickEconomy…");
   requireApiKey(); // fail fast before any DB writes if the key is missing
+  await ensureCollection();
   const setCount = await importSets();
   const figCount = await importMinifigs();
+  await recomputeCollectionTotals(prisma, COLLECTION_ID);
   console.log(`✓ Imported ${setCount} set(s) and ${figCount} minifig(s)`);
 }
 

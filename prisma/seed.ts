@@ -1,6 +1,13 @@
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../src/generated/prisma/client";
+import {
+  COLLECTION_DESCRIPTION,
+  COLLECTION_ID,
+  COLLECTION_TITLE,
+  legacyDisposition,
+  recomputeCollectionTotals,
+} from "../src/lib/collection";
 
 // Note: event dates are approximate — verify against original sources before publishing.
 
@@ -37,8 +44,17 @@ async function main() {
   });
   await prisma.event.deleteMany();
   await prisma.person.deleteMany();
-  // Preserve ls_* sets added via accepted proposals (genId prefix "ls").
-  await prisma.legoSet.deleteMany({
+  // Preserve ls_* items added via accepted proposals (genId prefix "ls").
+  await prisma.collection.upsert({
+    where: { id: COLLECTION_ID },
+    update: {},
+    create: {
+      id: COLLECTION_ID,
+      title: COLLECTION_TITLE,
+      description: COLLECTION_DESCRIPTION,
+    },
+  });
+  await prisma.collectionItem.deleteMany({
     where: { NOT: { id: { startsWith: "ls_" } } },
   });
 
@@ -664,114 +680,156 @@ async function main() {
   // secondary-market figures and can be edited/refreshed later; `status` tracks
   // where each set ended up. Ids use a hyphen so accepted proposals (ls_*) are
   // preserved across reseeds.
-  await prisma.legoSet.createMany({
-    data: [
-      {
-        id: "ls-75192",
-        name: "Millennium Falcon (UCS)",
-        setNumber: "75192",
-        year: 2017,
-        pieces: 7541,
-        retailPrice: 850,
-        currentValue: 1100,
-        status: "With Bricks & Minifigs",
+  const placeholderSets: Array<{
+    id: string;
+    name: string;
+    setNumber: string;
+    year: number;
+    pieces: number;
+    retailPrice?: number;
+    currentValue?: number;
+    status?: string;
+    soldPrice?: number;
+  }> = [
+    {
+      id: "ls-75192",
+      name: "Millennium Falcon (UCS)",
+      setNumber: "75192",
+      year: 2017,
+      pieces: 7541,
+      retailPrice: 850,
+      currentValue: 1100,
+      status: "With Bricks & Minifigs",
+    },
+    {
+      id: "ls-10179",
+      name: "Millennium Falcon (UCS, first edition)",
+      setNumber: "10179",
+      year: 2007,
+      pieces: 5195,
+      retailPrice: 500,
+      currentValue: 4200,
+      status: "With Bricks & Minifigs",
+    },
+    {
+      id: "ls-75313",
+      name: "AT-AT (UCS)",
+      setNumber: "75313",
+      year: 2021,
+      pieces: 6785,
+      retailPrice: 800,
+      currentValue: 900,
+      status: "With Bricks & Minifigs",
+    },
+    {
+      id: "ls-75252",
+      name: "Imperial Star Destroyer (UCS)",
+      setNumber: "75252",
+      year: 2019,
+      pieces: 4784,
+      retailPrice: 700,
+      currentValue: 1050,
+      status: "Sold",
+      soldPrice: 600,
+    },
+    {
+      id: "ls-10143",
+      name: "Death Star II",
+      setNumber: "10143",
+      year: 2005,
+      pieces: 3441,
+      retailPrice: 270,
+      currentValue: 3800,
+      status: "Sold",
+      soldPrice: 2400,
+    },
+    {
+      id: "ls-10030",
+      name: "Imperial Star Destroyer (UCS, 2002)",
+      setNumber: "10030",
+      year: 2002,
+      pieces: 3104,
+      retailPrice: 270,
+      currentValue: 2600,
+      status: "Sold",
+      soldPrice: 1500,
+    },
+    {
+      id: "ls-75059",
+      name: "Sandcrawler (UCS)",
+      setNumber: "75059",
+      year: 2014,
+      pieces: 3296,
+      retailPrice: 300,
+      currentValue: 1900,
+      status: "With Bricks & Minifigs",
+    },
+    {
+      id: "ls-10221",
+      name: "Super Star Destroyer",
+      setNumber: "10221",
+      year: 2011,
+      pieces: 3152,
+      retailPrice: 400,
+      currentValue: 1300,
+      status: "Recovered",
+    },
+    {
+      id: "ls-75060",
+      name: "Slave I (UCS)",
+      setNumber: "75060",
+      year: 2015,
+      pieces: 1996,
+      retailPrice: 200,
+      currentValue: 700,
+      status: "Recovered",
+    },
+    {
+      id: "ls-75827",
+      name: "Ghostbusters Firehouse (themed display piece)",
+      setNumber: "75827",
+      year: 2016,
+      pieces: 4634,
+      retailPrice: 350,
+      currentValue: 650,
+      status: "Sold",
+      soldPrice: 420,
+    },
+  ];
+
+  // Materialize the placeholders as CollectionItems (+ a BrickEconomy evaluation
+  // and one entry each) so a fresh DB without API access still renders.
+  for (const s of placeholderSets) {
+    await prisma.collectionItem.create({
+      data: {
+        id: s.id,
+        collectionId: COLLECTION_ID,
+        name: s.name,
+        legoRef: s.setNumber,
+        type: "SET",
+        year: s.year,
+        pieces: s.pieces,
+        evaluations: {
+          create: [
+            {
+              source: "BRICKECONOMY",
+              value: s.currentValue ?? 0,
+              retail: s.retailPrice ?? 0,
+            },
+          ],
+        },
+        entries: {
+          create: [
+            {
+              disposition: legacyDisposition(s.status ?? ""),
+              sellPrice: s.soldPrice ?? 0,
+            },
+          ],
+        },
       },
-      {
-        id: "ls-10179",
-        name: "Millennium Falcon (UCS, first edition)",
-        setNumber: "10179",
-        year: 2007,
-        pieces: 5195,
-        retailPrice: 500,
-        currentValue: 4200,
-        status: "With Bricks & Minifigs",
-      },
-      {
-        id: "ls-75313",
-        name: "AT-AT (UCS)",
-        setNumber: "75313",
-        year: 2021,
-        pieces: 6785,
-        retailPrice: 800,
-        currentValue: 900,
-        status: "With Bricks & Minifigs",
-      },
-      {
-        id: "ls-75252",
-        name: "Imperial Star Destroyer (UCS)",
-        setNumber: "75252",
-        year: 2019,
-        pieces: 4784,
-        retailPrice: 700,
-        currentValue: 1050,
-        status: "Sold",
-        soldPrice: 600,
-      },
-      {
-        id: "ls-10143",
-        name: "Death Star II",
-        setNumber: "10143",
-        year: 2005,
-        pieces: 3441,
-        retailPrice: 270,
-        currentValue: 3800,
-        status: "Sold",
-        soldPrice: 2400,
-      },
-      {
-        id: "ls-10030",
-        name: "Imperial Star Destroyer (UCS, 2002)",
-        setNumber: "10030",
-        year: 2002,
-        pieces: 3104,
-        retailPrice: 270,
-        currentValue: 2600,
-        status: "Sold",
-        soldPrice: 1500,
-      },
-      {
-        id: "ls-75059",
-        name: "Sandcrawler (UCS)",
-        setNumber: "75059",
-        year: 2014,
-        pieces: 3296,
-        retailPrice: 300,
-        currentValue: 1900,
-        status: "With Bricks & Minifigs",
-      },
-      {
-        id: "ls-10221",
-        name: "Super Star Destroyer",
-        setNumber: "10221",
-        year: 2011,
-        pieces: 3152,
-        retailPrice: 400,
-        currentValue: 1300,
-        status: "Recovered",
-      },
-      {
-        id: "ls-75060",
-        name: "Slave I (UCS)",
-        setNumber: "75060",
-        year: 2015,
-        pieces: 1996,
-        retailPrice: 200,
-        currentValue: 700,
-        status: "Recovered",
-      },
-      {
-        id: "ls-75827",
-        name: "Ghostbusters Firehouse (themed display piece)",
-        setNumber: "75827",
-        year: 2016,
-        pieces: 4634,
-        retailPrice: 350,
-        currentValue: 650,
-        status: "Sold",
-        soldPrice: 420,
-      },
-    ],
-  });
+    });
+  }
+  await recomputeCollectionTotals(prisma, COLLECTION_ID);
 
   // Seed the initial admin. More admins can be added from the dashboard.
   await prisma.adminUser.upsert({

@@ -1,0 +1,358 @@
+model Collection {
+    id String @id
+
+    title       String
+    description String
+
+    totalSets      Int @default(0)
+    totalSetsValue Int @default(0)
+
+    totalFigs      Int @default(0)
+    totalFigsValue Int @default(0)
+
+    items CollectionItem[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum CIType {
+    SET
+    MINIFIGURE
+}
+
+enum CIThemes {
+    STARWARS
+}
+
+/**
+ * @description in the codeblock below underneath the @example you'll see the typescript version
+ * @example
+ * ```typescript
+ * enum CISubthemes = {
+ * STARWARS="undefined"
+ * FOUR_PLUS="4 Plus"
+ * AHSOKA="Ahsoka"
+ * ANDOR="Andor"
+ * BATTLEFRONT="Battlefront"
+ * BOOK_PARTS="Book Parts"
+ * BOOST="Boost"
+ * BUILDABLE_FIGURES="Buildable Figures"
+ * COMIC_CON="Comic-Con"
+ * DIORAMA_COLLECTION="Diorama Collection"
+ * EMPLOYEE_GIFT="Employee Gift"
+ * EPISODE_I="Episode I"
+ * EPISODE_II="Episode II"
+ * EPISODE_III="Episode III"
+ * EPISODE_IV="Episode IV"
+ * EPISODE_V="Episode V"
+ * EPISODE_VI="Episode VI"
+ * EXCLUSIVE_MINIFIGS="Exclusive Minifigs"
+ * GALAXYS_EDGE="Galaxy's Edge"
+ * HELMET_COLLECTION="Helmet Collection"
+ * JEDI_FALLEN_ORDER="Jedi Fallen Order"
+ * LEGENDS="Legends"
+ * MAGAZINE_GIFTS="Magazine Gifts"
+ * MASTER_BUILDER_SERIES="Master Builder Series"
+ * MECHS="Mechs"
+ * MICROFIGHTERS="MicroFighters"
+ * MINI_BUILDING_SET="Mini Building Set"
+ * MISCELLANEOUS="Miscellaneous"
+ * OBI_WAN_KENOBI="Obi-Wan Kenobi"
+ * ORIGINAL_CONTENT="Original Content"
+ * PLANET_SET="Planet Set"
+ * PROMOTIONAL="Promotional"
+ * REBELS="Rebels"
+ * REBUILD_THE_GALAXY="Rebuild the Galaxy"
+ * RESISTANCE="Resistance"
+ * ROGUE_ONE="Rogue One"
+ * SEASONAL="Seasonal"
+ * SKELETON_CREW="Skeleton Crew"
+ * SMART_PLAY="SMART Play"
+ * SOLO="Solo"
+ * STARSHIP_COLLECTION="Starship Collection"
+ * TECHNIC="Technic"
+ * THE_BAD_BATCH="The Bad Batch"
+ * THE_BOOK_OF_BOBA_FETT="The Book of Boba Fett"
+ * THE_CLONE_WARS="The Clone Wars"
+ * THE_FORCE_AWAKENS="The Force Awakens"
+ * THE_LAST_JEDI="The Last Jedi"
+ * THE_MANDALORIAN="The Mandalorian"
+ * THE_MANDALORIAN_AND_GROGU="The Mandalorian and Grogu"
+ * THE_OLD_REPUBLIC="The Old Republic"
+ * THE_RISE_OF_SKYWALKER="The Rise of Skywalker"
+ * ULTIMATE_COLLECTOR_SERIES="Ultimate Collector Series"
+ * UP_SCALED_MINIFIGURE="Up-Scaled Minifigure"
+ * VALUE_PACKS="Value Packs"
+ * YOUNG_JEDI_ADVENTURES="Young Jedi Adventures"
+ * }
+ * ```
+ */
+enum CISubthemes {
+    STARWARS
+    FOUR_PLUS
+    AHSOKA
+    ANDOR
+    BATTLEFRONT
+    BOOK_PARTS
+    BOOST
+    BUILDABLE_FIGURES
+    COMIC_CON
+    DIORAMA_COLLECTION
+    EMPLOYEE_GIFT
+    EPISODE_I
+    EPISODE_II
+    EPISODE_III
+    EPISODE_IV
+    EPISODE_V
+    EPISODE_VI
+    EXCLUSIVE_MINIFIGS
+    GALAXYS_EDGE
+    HELMET_COLLECTION
+    JEDI_FALLEN_ORDER
+    LEGENDS
+    MAGAZINE_GIFTS
+    MASTER_BUILDER_SERIES
+    MECHS
+    MICROFIGHTERS
+    MINI_BUILDING_SET
+    MISCELLANEOUS
+    OBI_WAN_KENOBI
+    ORIGINAL_CONTENT
+    PLANET_SET
+    PROMOTIONAL
+    REBELS
+    REBUILD_THE_GALAXY
+    RESISTANCE
+    ROGUE_ONE
+    SEASONAL
+    SKELETON_CREW
+    SMART_PLAY
+    SOLO
+    STARSHIP_COLLECTION
+    TECHNIC
+    THE_BAD_BATCH
+    THE_BOOK_OF_BOBA_FETT
+    THE_CLONE_WARS
+    THE_FORCE_AWAKENS
+    THE_LAST_JEDI
+    THE_MANDALORIAN
+    THE_MANDALORIAN_AND_GROGU
+    THE_OLD_REPUBLIC
+    THE_RISE_OF_SKYWALKER
+    ULTIMATE_COLLECTOR_SERIES
+    UP_SCALED_MINIFIGURE
+    VALUE_PACKS
+    YOUNG_JEDI_ADVENTURES
+}
+
+model CollectionItem {
+    /**
+     * @alias LegoSet.id
+     * @alias LegoMinifig.id
+     * @description previously known as LegoSet.id and LegoMinifig.id
+     */
+    id String @id
+
+    /**
+     * @alias LegoSet.setNumber
+     * @alias LegoMinifig.minifigNumber
+     * @description previously known as LegoSet.setNumber and LegoMinifig.minifigNumber
+     */
+    legoRef String @default("")
+
+    type CIType @default(SET)
+
+    /**
+     * @alias LegoSet.theme
+     * @alias LegoMinifig.theme
+     * @description previously known as LegoSet.theme and LegoMinifig.theme
+     */
+    theme CIThemes @default(STARWARS)
+
+    /**
+     * @alias LegoSet.theme
+     * @alias LegoMinifig.theme
+     * @description previously known as LegoSet.theme and LegoMinifig.theme
+     */
+    subtheme CISubthemes @default(STARWARS)
+
+    /**
+     * @alias LegoSet.year
+     * @alias LegoMinifig.year
+     * @description previously known as LegoSet.year and LegoMinifig.year
+     */
+    year Int @default(0)
+
+    /**
+     * @alias LegoSet.name
+     * @alias LegoMinifig.name
+     * @description previously known as LegoSet.name and LegoMinifig.name
+     */
+    name String
+
+    /**
+     * @alias LegoSet.imageUrl
+     * @alias LegoMinifig.imageUrl
+     * @description previously known as LegoSet.imageUrl and LegoMinifig.imageUrl
+     */
+    imageUrl String?
+
+    /**
+     * @alias LegoSet.notes
+     * @alias LegoMinifig.notes
+     * @description free-form curated notes carried over from the legacy models.
+     */
+    notes String @default("")
+
+    /**
+     * @description copy count is the number of CollectionItemEntry rows — one per
+     * owned copy — so there is no denormalized quantity field here.
+     */
+
+    /**
+     * @alias LegoSet.pieces
+     * @description previously known as LegoSet.pieces
+     * @description the default of 2 refers is set for the minifigures which have fixed legs and torse (smaller once like yoda) and a head.
+     */
+    pieces Int @default(2)
+
+    /**
+     * @description when false the collection-level BrickEconomy refresh skips this
+     * item, so a manual (admin) evaluation is never overwritten automatically.
+     */
+    autoEvaluate Boolean @default(true)
+
+    collectionId String
+    collection   Collection @relation(fields: [collectionId], references: [id])
+
+    /**
+     * @description this allows us to register minifigures which are inside a lego set. But since we also register minifigures in this table we made the setId optional to prefent the code from failing
+     */
+    setId    String?
+    set      CollectionItem?  @relation("Set", fields: [setId], references: [id])
+    minifigs CollectionItem[] @relation("Set")
+
+    evaluations CollectionItemEvaluation[]
+    entries     CollectionItemEntry[]
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+enum CIESource {
+    BRICKECONOMY
+    BRICKSET
+    EBAY
+    // generic in-person appraisal / other site, admin-entered
+    MANUAL
+    // price suggestions submitted by a contributor or admin
+    CONTRIBUTORS
+}
+
+enum CIECurrencies {
+    EUR
+    USD
+}
+
+/**
+ * One price reading for an item from a single source. `value`/`valueLow`/
+ * `valueHigh` are the headline figures every source fills (they drive the card
+ * average and the per-source page totals); the boxed/used breakdown is optional
+ * richer detail for sources that split new vs. used (e.g. BrickEconomy).
+ */
+model CollectionItemEvaluation {
+    id String @id @default(cuid())
+
+    itemId String
+    item   CollectionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+    source   CIESource     @default(BRICKECONOMY)
+    currency CIECurrencies @default(USD)
+
+    retail Int @default(0)
+
+    // headline market value used for averages + totals
+    value     Int @default(0)
+    valueLow  Int @default(0)
+    valueHigh Int @default(0)
+
+    // optional new/used breakdown (BrickEconomy single-set endpoint)
+    boxed     Int @default(0)
+    boxedLow  Int @default(0)
+    boxedHigh Int @default(0)
+
+    used     Int @default(0)
+    usedLow  Int @default(0)
+    usedHigh Int @default(0)
+
+    // contributor attribution / appraisal note
+    note String @default("")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([itemId, source])
+}
+
+enum CIECondition {
+    BOXED
+    USED
+}
+
+enum CIELocation {
+    HOME
+    STORE
+    STOLEN
+    STORAGE
+    // all the empty cells or the once that list the word "Crack" should be definded as unknown
+    UNKNOWN
+}
+
+/**
+ * Where an item ended up. Orthogonal to physical location: an item can be SOLD
+ * while we still record where it physically was.
+ */
+enum CIDisposition {
+    HELD
+    SOLD
+    LAYAWAY
+    RECOVERED
+}
+
+model CollectionItemEntry {
+    id String @id @default(cuid())
+
+    itemId String
+    item   CollectionItem @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+    condition CIECondition @default(USED)
+
+    /**
+     * @alias LegoSet.status
+     * @alias LegoMinifig.status
+     * @description previously known as LegoSet.status and LegoMinifig.status — the
+     * PHYSICAL location only; sale state lives in `disposition`.
+     */
+    location CIELocation @default(STORE)
+
+    disposition CIDisposition @default(HELD)
+
+    isCrack       Boolean @default(false)
+    isBuild       Boolean @default(false)
+    isBuildWOFigs Boolean @default(false)
+
+    costPrice    Int @default(0) // the payed price
+    displayPrice Int @default(0) // the asking price in the store
+    /**
+     * @alias LegoSet.soldPrice
+     * @alias LegoMinifig.soldPrice
+     * @description previously known as LegoSet.soldPrice and LegoMinifig.soldPrice
+     */
+    sellPrice Int @default(0)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([itemId])
+}

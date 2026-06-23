@@ -2,63 +2,130 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { AdminItemControls } from "@/components/admin-content";
-import type { LegoMinifig, LegoSet } from "@/generated/prisma/client";
-import { fmtMoney, LEGOSET_STATUSES, type LegoSetStatus } from "@/lib/types";
+import { CollectionAdminControls } from "@/components/collection-admin";
+import type {
+  CIDisposition,
+  CIELocation,
+  CIESource,
+} from "@/generated/prisma/enums";
+import {
+  CONDITION_LABELS,
+  DISPOSITION_LABELS,
+  DISPOSITION_ORDER,
+  DISPOSITION_TONE,
+  type ItemEditData,
+  LOCATION_LABELS,
+  LOCATION_ORDER,
+  SOURCE_LABELS,
+} from "@/lib/collection";
+import { fmtMoney } from "@/lib/types";
 
-// Accent tone per status, reusing the design-system color vars.
-const STATUS_TONE: Record<LegoSetStatus, string> = {
-  "With Bricks & Minifigs": "var(--red)",
-  Sold: "var(--amber)",
-  Recovered: "var(--blue)",
-};
+// ── View shapes (built server-side in page.tsx) ──────────────────────────────
 
-function statusTone(status: string): string {
-  return STATUS_TONE[status as LegoSetStatus] ?? "var(--tx-2)";
+export interface SourceValueView {
+  source: CIESource;
+  value: number;
+  valueLow: number;
+  valueHigh: number;
+  note: string;
 }
+
+export interface EntryView {
+  id: string;
+  locationLabel: string;
+  condition: string;
+  disposition: CIDisposition;
+  costPrice: number;
+  displayPrice: number;
+  sellPrice: number;
+}
+
+export interface ItemView {
+  id: string;
+  name: string;
+  legoRef: string;
+  type: "SET" | "MINIFIGURE";
+  year: number;
+  pieces: number;
+  imageUrl: string | null;
+  notes: string;
+  quantity: number;
+  retail: number;
+  avg: number;
+  disposition: CIDisposition;
+  location: CIELocation;
+  sources: SourceValueView[];
+  entries: EntryView[];
+  edit: ItemEditData;
+}
+
+function dispositionTone(d: CIDisposition): string {
+  return DISPOSITION_TONE[d] ?? "var(--tx-2)";
+}
+
+// ── Top-level client (filters + grid) ────────────────────────────────────────
 
 export function CollectionClient({
   sets,
   minifigs,
 }: {
-  sets: LegoSet[];
-  minifigs: LegoMinifig[];
+  sets: ItemView[];
+  minifigs: ItemView[];
 }) {
-  const [filter, setFilter] = useState<LegoSetStatus | "all">("all");
+  const [disp, setDisp] = useState<CIDisposition | "all">("all");
+  const [loc, setLoc] = useState<CIELocation | "all">("all");
 
-  // Chip counts combine sets + minifigs (one per row) per status.
-  const counts = useMemo(() => {
-    const m = new Map<string, number>();
-    for (const s of sets) m.set(s.status, (m.get(s.status) ?? 0) + 1);
-    for (const f of minifigs) m.set(f.status, (m.get(f.status) ?? 0) + 1);
-    return m;
-  }, [sets, minifigs]);
+  const all = useMemo(() => [...sets, ...minifigs], [sets, minifigs]);
+  const dispCounts = useMemo(() => countBy(all, (i) => i.disposition), [all]);
+  const locCounts = useMemo(() => countBy(all, (i) => i.location), [all]);
 
-  const visibleSets =
-    filter === "all" ? sets : sets.filter((s) => s.status === filter);
-  const visibleFigs =
-    filter === "all" ? minifigs : minifigs.filter((f) => f.status === filter);
-
-  const total = sets.length + minifigs.length;
+  const match = (i: ItemView) =>
+    (disp === "all" || i.disposition === disp) &&
+    (loc === "all" || i.location === loc);
+  const visibleSets = sets.filter(match);
+  const visibleFigs = minifigs.filter(match);
+  const total = all.length;
 
   return (
     <div className="wrap-wide section-sm">
-      <div className="filterbar" style={{ marginBottom: 24 }}>
+      <div className="filterbar" style={{ marginBottom: 12 }}>
         <button
           type="button"
-          className={`chip ${filter === "all" ? "on" : ""}`}
-          onClick={() => setFilter("all")}
+          className={`chip ${disp === "all" ? "on" : ""}`}
+          onClick={() => setDisp("all")}
         >
           All ({total})
         </button>
-        {LEGOSET_STATUSES.map((status) => (
+        {DISPOSITION_ORDER.filter((d) => (dispCounts.get(d) ?? 0) > 0).map(
+          (d) => (
+            <button
+              key={d}
+              type="button"
+              className={`chip ${disp === d ? "on" : ""}`}
+              onClick={() => setDisp(d)}
+            >
+              {DISPOSITION_LABELS[d]} ({dispCounts.get(d) ?? 0})
+            </button>
+          ),
+        )}
+      </div>
+
+      <div className="filterbar" style={{ marginBottom: 24 }}>
+        <button
+          type="button"
+          className={`chip ${loc === "all" ? "on" : ""}`}
+          onClick={() => setLoc("all")}
+        >
+          Anywhere
+        </button>
+        {LOCATION_ORDER.filter((l) => (locCounts.get(l) ?? 0) > 0).map((l) => (
           <button
-            key={status}
+            key={l}
             type="button"
-            className={`chip ${filter === status ? "on" : ""}`}
-            onClick={() => setFilter(status)}
+            className={`chip ${loc === l ? "on" : ""}`}
+            onClick={() => setLoc(l)}
           >
-            {status} ({counts.get(status) ?? 0})
+            {LOCATION_LABELS[l]} ({locCounts.get(l) ?? 0})
           </button>
         ))}
       </div>
@@ -74,7 +141,7 @@ export function CollectionClient({
           </p>
           <div className="grid-3">
             {visibleSets.map((s) => (
-              <SetCard key={s.id} set={s} />
+              <ItemCard key={s.id} item={s} />
             ))}
           </div>
         </section>
@@ -87,7 +154,7 @@ export function CollectionClient({
           </p>
           <div className="grid-3">
             {visibleFigs.map((f) => (
-              <MinifigCard key={f.id} fig={f} />
+              <ItemCard key={f.id} item={f} />
             ))}
           </div>
         </section>
@@ -95,6 +162,17 @@ export function CollectionClient({
     </div>
   );
 }
+
+function countBy<T, K>(rows: T[], keyOf: (r: T) => K): Map<K, number> {
+  const m = new Map<K, number>();
+  for (const r of rows) {
+    const k = keyOf(r);
+    m.set(k, (m.get(k) ?? 0) + 1);
+  }
+  return m;
+}
+
+// ── Card ─────────────────────────────────────────────────────────────────────
 
 function CardThumb({
   imageUrl,
@@ -131,58 +209,55 @@ function CardThumb({
   );
 }
 
-function StatusTag({ status }: { status: string }) {
-  return (
-    <span className="tag" style={{ marginBottom: 10 }}>
-      <span className="dot" style={{ background: statusTone(status) }} />
-      {status}
-    </span>
-  );
-}
+function ItemCard({ item: i }: { item: ItemView }) {
+  const [open, setOpen] = useState(false);
+  const multiple = i.quantity > 1;
+  const refLabel = i.legoRef ? `#${i.legoRef}` : null;
 
-function CardTitle({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        fontSize: 16,
-        color: "var(--tx-0)",
-        fontFamily: "var(--serif)",
-        fontWeight: 500,
-        lineHeight: 1.3,
-        marginTop: 8,
-      }}
-    >
-      {children}
-    </div>
-  );
-}
-
-function SetCard({ set: s }: { set: LegoSet }) {
-  const multiple = s.quantity > 1;
   return (
     <div className="card" style={{ overflow: "hidden", display: "block" }}>
       <CardThumb
-        imageUrl={s.imageUrl}
-        alt={s.name}
-        fallback={s.setNumber ? `#${s.setNumber}` : "set photo"}
+        imageUrl={i.imageUrl}
+        alt={i.name}
+        fallback={
+          refLabel ?? (i.type === "MINIFIGURE" ? "minifig photo" : "set photo")
+        }
       />
 
       <div style={{ padding: "14px 16px" }}>
-        <StatusTag status={s.status} />
-        <CardTitle>
-          {s.name}
+        <span className="tag" style={{ marginBottom: 10 }}>
+          <span
+            className="dot"
+            style={{ background: dispositionTone(i.disposition) }}
+          />
+          {DISPOSITION_LABELS[i.disposition]}
+        </span>
+
+        <div
+          style={{
+            fontSize: 16,
+            color: "var(--tx-0)",
+            fontFamily: "var(--serif)",
+            fontWeight: 500,
+            lineHeight: 1.3,
+            marginTop: 8,
+          }}
+        >
+          {i.name}
           {multiple ? (
             <span className="mono-sm" style={{ marginLeft: 8 }}>
-              ×{s.quantity}
+              ×{i.quantity}
             </span>
           ) : null}
-        </CardTitle>
+        </div>
 
         <div className="mono-sm" style={{ marginTop: 4 }}>
           {[
-            s.setNumber ? `#${s.setNumber}` : null,
-            s.year ? String(s.year) : null,
-            s.pieces ? `${s.pieces.toLocaleString()} pcs` : null,
+            refLabel,
+            i.year ? String(i.year) : null,
+            i.type === "SET" && i.pieces
+              ? `${i.pieces.toLocaleString()} pcs`
+              : null,
           ]
             .filter(Boolean)
             .join(" · ")}
@@ -200,35 +275,53 @@ function SetCard({ set: s }: { set: LegoSet }) {
           }}
         >
           <div>
-            <div className="mono-label">Current value</div>
+            <div className="mono-label">
+              Avg value · {i.sources.length || 0} source
+              {i.sources.length === 1 ? "" : "s"}
+            </div>
             <div
               className="tnum"
               style={{ fontSize: 20, color: "var(--tx-0)" }}
             >
-              {fmtMoney(s.currentValue)}
+              {fmtMoney(i.avg)}
             </div>
           </div>
           <div style={{ textAlign: "right" }} className="mono-sm">
             {multiple ? (
               <div>
-                ×{s.quantity} = {fmtMoney(s.currentValue * s.quantity)}
+                ×{i.quantity} = {fmtMoney(i.avg * i.quantity)}
               </div>
             ) : null}
-            {s.retailPrice ? <div>Retail {fmtMoney(s.retailPrice)}</div> : null}
-            {s.status === "Sold" && s.soldPrice ? (
-              <div>Sold for {fmtMoney(s.soldPrice)}</div>
-            ) : null}
+            {i.retail ? <div>Retail {fmtMoney(i.retail)}</div> : null}
           </div>
         </div>
 
-        {s.notes ? (
+        {i.notes ? (
           <p
             className="body-txt"
             style={{ margin: "12px 0 0", fontSize: 13.5 }}
           >
-            {s.notes}
+            {i.notes}
           </p>
         ) : null}
+
+        <button
+          type="button"
+          className="mono-sm"
+          style={{
+            marginTop: 12,
+            color: "var(--blue)",
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
+          onClick={() => setOpen((o) => !o)}
+        >
+          {open ? "Hide details" : "Show prices & locations"}
+        </button>
+
+        {open ? <ItemDetails item={i} /> : null}
 
         <div
           style={{
@@ -240,96 +333,96 @@ function SetCard({ set: s }: { set: LegoSet }) {
           }}
         >
           <Link
-            href={`/propose/legoset?op=edit&id=${s.id}`}
+            href={`/propose/legoset?op=edit&id=${i.id}`}
             className="mono-sm"
             style={{ color: "var(--blue)" }}
           >
             Suggest edit
           </Link>
           <Link
-            href={`/propose/legoset?op=remove&id=${s.id}`}
+            href={`/propose/legoset?op=remove&id=${i.id}`}
             className="mono-sm"
             style={{ color: "var(--tx-2)" }}
           >
             Propose removal
           </Link>
-          <AdminItemControls type="legoset" id={s.id} row={s} />
+          <CollectionAdminControls item={i.edit} />
         </div>
       </div>
     </div>
   );
 }
 
-function MinifigCard({ fig: f }: { fig: LegoMinifig }) {
-  const multiple = f.quantity > 1;
+function ItemDetails({ item: i }: { item: ItemView }) {
   return (
-    <div className="card" style={{ overflow: "hidden", display: "block" }}>
-      <CardThumb
-        imageUrl={f.imageUrl}
-        alt={f.name}
-        fallback={f.minifigNumber ? `#${f.minifigNumber}` : "minifig photo"}
-      />
-
-      <div style={{ padding: "14px 16px" }}>
-        <StatusTag status={f.status} />
-        <CardTitle>
-          {f.name}
-          {multiple ? (
-            <span className="mono-sm" style={{ marginLeft: 8 }}>
-              ×{f.quantity}
-            </span>
-          ) : null}
-        </CardTitle>
-
-        <div className="mono-sm" style={{ marginTop: 4 }}>
-          {[
-            f.minifigNumber ? `#${f.minifigNumber}` : null,
-            f.year ? String(f.year) : null,
-          ]
-            .filter(Boolean)
-            .join(" · ")}
+    <div
+      style={{
+        marginTop: 12,
+        paddingTop: 12,
+        borderTop: "1px dashed var(--line)",
+        display: "flex",
+        flexDirection: "column",
+        gap: 14,
+      }}
+    >
+      <div>
+        <div className="mono-label" style={{ marginBottom: 6 }}>
+          Price by source
         </div>
-
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            justifyContent: "space-between",
-            gap: 8,
-            marginTop: 14,
-            paddingTop: 12,
-            borderTop: "1px solid var(--line)",
-          }}
-        >
-          <div>
-            <div className="mono-label">Current value</div>
-            <div
-              className="tnum"
-              style={{ fontSize: 20, color: "var(--tx-0)" }}
-            >
-              {fmtMoney(f.currentValue)}
-            </div>
-          </div>
-          <div style={{ textAlign: "right" }} className="mono-sm">
-            {multiple ? (
-              <div>
-                ×{f.quantity} = {fmtMoney(f.currentValue * f.quantity)}
+        {i.sources.length === 0 ? (
+          <p className="mono-sm">No price readings yet.</p>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            {i.sources.map((s) => (
+              <div
+                key={s.source}
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  gap: 8,
+                }}
+              >
+                <span className="mono-sm">{SOURCE_LABELS[s.source]}</span>
+                <span className="mono-sm tnum" style={{ color: "var(--tx-0)" }}>
+                  {fmtMoney(s.value)}
+                  {s.valueLow || s.valueHigh ? (
+                    <span style={{ color: "var(--tx-2)" }}>
+                      {" "}
+                      ({fmtMoney(s.valueLow)}–{fmtMoney(s.valueHigh)})
+                    </span>
+                  ) : null}
+                </span>
               </div>
-            ) : null}
-            {f.status === "Sold" && f.soldPrice ? (
-              <div>Sold for {fmtMoney(f.soldPrice)}</div>
-            ) : null}
+            ))}
           </div>
-        </div>
+        )}
+      </div>
 
-        {f.notes ? (
-          <p
-            className="body-txt"
-            style={{ margin: "12px 0 0", fontSize: 13.5 }}
-          >
-            {f.notes}
-          </p>
-        ) : null}
+      <div>
+        <div className="mono-label" style={{ marginBottom: 6 }}>
+          Copies & whereabouts
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+          {i.entries.map((e) => (
+            <div key={e.id} className="mono-sm">
+              <div style={{ color: "var(--tx-0)" }}>
+                {e.locationLabel} · {DISPOSITION_LABELS[e.disposition]} ·{" "}
+                {CONDITION_LABELS[
+                  e.condition as keyof typeof CONDITION_LABELS
+                ] ?? e.condition}
+              </div>
+              <div style={{ color: "var(--tx-2)" }}>
+                {[
+                  e.costPrice ? `Cost ${fmtMoney(e.costPrice)}` : null,
+                  e.displayPrice ? `Listed ${fmtMoney(e.displayPrice)}` : null,
+                  e.sellPrice ? `Sold ${fmtMoney(e.sellPrice)}` : null,
+                ]
+                  .filter(Boolean)
+                  .join(" · ") || "No prices recorded"}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
     </div>
   );

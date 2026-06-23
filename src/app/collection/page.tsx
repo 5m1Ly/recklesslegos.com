@@ -1,57 +1,139 @@
 import Link from "next/link";
-import { AdminAddButton } from "@/components/admin-content";
+import { CollectionAddButton } from "@/components/collection-admin";
 import { Footer } from "@/components/footer";
 import { Nav } from "@/components/nav";
 import { PageHead } from "@/components/page-head";
+import type { CIDisposition, CIESource } from "@/generated/prisma/enums";
+import {
+  avgValue,
+  entryLocationLabel,
+  itemToEditData,
+  SOURCE_LABELS,
+  SOURCE_ORDER,
+  sourceValueMap,
+} from "@/lib/collection";
 import { prisma } from "@/lib/db";
 import { pageMetadata } from "@/lib/site";
 import { fmtMoney } from "@/lib/types";
-import { CollectionClient } from "./collection-client";
+import { CollectionClient, type ItemView } from "./collection-client";
 
 export const metadata = pageMetadata({
   title: "The LEGO Star Wars Collection",
   description:
-    "An itemized inventory of Bryan Mansell's LEGO Star Wars collection — each set's current value, plus totals for the full collection, the sets sold, and the sets still held by Bricks & Minifigs.",
+    "An itemized inventory of Bryan Mansell's LEGO Star Wars collection — each item's value across multiple price sources, plus per-source totals for the full collection.",
   path: "/collection",
 });
 
-export default async function CollectionPage() {
-  const [sets, minifigs] = await Promise.all([
-    prisma.legoSet.findMany({ orderBy: { currentValue: "desc" } }),
-    prisma.legoMinifig.findMany({ orderBy: { currentValue: "desc" } }),
-  ]);
+// A collection item with the relations the view needs.
+type ItemWithRelations = Awaited<ReturnType<typeof loadItems>>[number];
 
-  // Values and counts are per owned copy: a row's quantity is how many Bryan
-  // owns, so value and totals multiply by it.
-  const sum = (rows: { currentValue: number; quantity: number }[]) =>
-    rows.reduce((total, r) => total + r.currentValue * r.quantity, 0);
-  const count = (rows: { quantity: number }[]) =>
-    rows.reduce((n, r) => n + r.quantity, 0);
-
-  const byStatus = (status: string) => ({
-    sets: sets.filter((s) => s.status === status),
-    figs: minifigs.filter((m) => m.status === status),
+function loadItems() {
+  return prisma.collectionItem.findMany({
+    include: {
+      entries: { orderBy: { createdAt: "asc" } },
+      evaluations: true,
+    },
   });
-  const withBandM = byStatus("With Bricks & Minifigs");
-  const sold = byStatus("Sold");
+}
 
-  const pl = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
-  const breakdown = (g: { sets: typeof sets; figs: typeof minifigs }) =>
-    `${pl(count(g.sets), "set")} · ${pl(count(g.figs), "minifig")}`;
+/** Build the serializable card view from a DB item. */
+function toView(item: ItemWithRelations): ItemView {
+  const evals = item.evaluations;
+  const svMap = sourceValueMap(evals);
+  const sources = SOURCE_ORDER.filter((src) => (svMap.get(src) ?? 0) > 0).map(
+    (src) => {
+      const rows = evals.filter((e) => e.source === src);
+      const lows = rows.map((r) => r.valueLow).filter((x) => x > 0);
+      const highs = rows.map((r) => r.valueHigh).filter((x) => x > 0);
+      return {
+        source: src,
+        value: svMap.get(src) ?? 0,
+        valueLow: lows.length ? Math.min(...lows) : 0,
+        valueHigh: highs.length ? Math.max(...highs) : 0,
+        note: rows.map((r) => r.note).find((n) => n.trim()) ?? "",
+      };
+    },
+  );
+
+  const primary = item.entries[0];
+  const brickeconomy = evals.find((e) => e.source === "BRICKECONOMY");
+
+  return {
+    id: item.id,
+    name: item.name,
+    legoRef: item.legoRef,
+    type: item.type,
+    year: item.year,
+    pieces: item.pieces,
+    imageUrl: item.imageUrl,
+    notes: item.notes,
+    quantity: item.entries.length,
+    retail: brickeconomy?.retail ?? 0,
+    avg: avgValue(evals),
+    disposition: primary?.disposition ?? "HELD",
+    location: primary?.location ?? "UNKNOWN",
+    sources,
+    entries: item.entries.map((e) => ({
+      id: e.id,
+      locationLabel: entryLocationLabel(e),
+      condition: e.condition,
+      disposition: e.disposition,
+      costPrice: e.costPrice,
+      displayPrice: e.displayPrice,
+      sellPrice: e.sellPrice,
+    })),
+    edit: itemToEditData(item),
+  };
+}
+
+export default async function CollectionPage() {
+  const items = await loadItems();
+  const views = items.map(toView).sort((a, b) => b.avg - a.avg);
+  const sets = views.filter((v) => v.type === "SET");
+  const minifigs = views.filter((v) => v.type === "MINIFIGURE");
+
+  // Per-owned-copy value/counts: a row's quantity is how many Bryan owns.
+  const sumAvg = (vs: ItemView[]) =>
+    vs.reduce((t, v) => t + v.avg * v.quantity, 0);
+  const countQty = (vs: ItemView[]) => vs.reduce((t, v) => t + v.quantity, 0);
+  const pl = (n: number, w: string) => `${n} ${w}${n === 1 ? "" : "s"}`;
+
+  // Per-source totals across the whole collection (the headline ask).
+  const perSource = new Map<CIESource, number>();
+  for (const it of items) {
+    for (const [src, val] of sourceValueMap(it.evaluations))
+      perSource.set(src, (perSource.get(src) ?? 0) + val * it.entries.length);
+  }
+
+  const grp = (d: CIDisposition) => ({
+    sets: sets.filter((v) => v.disposition === d),
+    figs: minifigs.filter((v) => v.disposition === d),
+  });
+  const breakdown = (g: { sets: ItemView[]; figs: ItemView[] }) =>
+    `${pl(countQty(g.sets), "set")} · ${pl(countQty(g.figs), "minifig")}`;
+  const held = grp("HELD");
+  const sold = grp("SOLD");
 
   const stats = [
     {
-      n: fmtMoney(sum(sets) + sum(minifigs)),
+      n: fmtMoney(sumAvg(views)),
       label: "Total collection value",
-      x: `${breakdown({ sets, figs: minifigs })} · current market value`,
+      x: `${breakdown({ sets, figs: minifigs })} · cross-source average`,
     },
+    ...SOURCE_ORDER.filter((src) => (perSource.get(src) ?? 0) > 0).map(
+      (src) => ({
+        n: fmtMoney(perSource.get(src) ?? 0),
+        label: `${SOURCE_LABELS[src]} total`,
+        x: "market value across the collection",
+      }),
+    ),
     {
-      n: fmtMoney(sum(withBandM.sets) + sum(withBandM.figs)),
+      n: fmtMoney(sumAvg([...held.sets, ...held.figs])),
       label: "Still with Bricks & Minifigs",
-      x: breakdown(withBandM),
+      x: breakdown(held),
     },
     {
-      n: fmtMoney(sum(sold.sets) + sum(sold.figs)),
+      n: fmtMoney(sumAvg([...sold.sets, ...sold.figs])),
       label: "Sold",
       x: breakdown(sold),
     },
@@ -68,7 +150,7 @@ export default async function CollectionPage() {
             </span>
           }
           title="The LEGO Star Wars Collection"
-          sub="An itemized inventory of Bryan Mansell's LEGO Star Wars collection. Each set's current value is an approximate secondary-market figure; totals below break the collection down by where each set ended up."
+          sub="An itemized inventory of Bryan Mansell's LEGO Star Wars collection. Each item's value is averaged across the price sources that have it; the totals below break the collection down by source and by where each item ended up."
         >
           <div className="stat-grid" style={{ marginTop: 24 }}>
             {stats.map((s) => (
@@ -88,9 +170,9 @@ export default async function CollectionPage() {
             }}
           >
             <Link href="/propose/legoset?op=add" className="btn btn-ghost">
-              + Propose a set
+              + Propose an item
             </Link>
-            <AdminAddButton type="legoset" />
+            <CollectionAddButton />
           </div>
         </PageHead>
         <CollectionClient sets={sets} minifigs={minifigs} />

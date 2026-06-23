@@ -46,7 +46,7 @@ const newEntry = (): EditEntry => ({
   id: "",
   condition: "USED",
   location: "STORE",
-  disposition: "HELD",
+  disposition: "FOR_SALE",
   isCrack: false,
   isBuild: false,
   isBuildWOFigs: false,

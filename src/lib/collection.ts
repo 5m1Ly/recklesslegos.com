@@ -38,38 +38,39 @@ export const LOCATION_ORDER: CIELocation[] = [
   "STORE",
   "STORAGE",
   "HOME",
-  "STOLEN",
   "UNKNOWN",
 ];
 
 export const LOCATION_LABELS: Record<CIELocation, string> = {
   HOME: "Home",
   STORE: "Store",
-  STOLEN: "Stolen",
   STORAGE: "Storage",
   UNKNOWN: "Unknown",
 };
 
 export const DISPOSITION_ORDER: CIDisposition[] = [
-  "HELD",
-  "SOLD",
+  "FOR_SALE",
   "LAYAWAY",
+  "SOLD",
   "RECOVERED",
+  "STOLEN",
 ];
 
 export const DISPOSITION_LABELS: Record<CIDisposition, string> = {
-  HELD: "With Bricks & Minifigs",
+  FOR_SALE: "For Sale",
   SOLD: "Sold",
   LAYAWAY: "Layaway",
+  STOLEN: "Stolen",
   RECOVERED: "Recovered",
 };
 
 // Accent tone per disposition, reusing the design-system color vars.
 export const DISPOSITION_TONE: Record<CIDisposition, string> = {
-  HELD: "var(--red)",
-  SOLD: "var(--amber)",
+  FOR_SALE: "var(--green)",
   LAYAWAY: "var(--violet)",
+  SOLD: "var(--amber)",
   RECOVERED: "var(--blue)",
+  STOLEN: "var(--red)",
 };
 
 export const CONDITION_LABELS: Record<CIECondition, string> = {
@@ -175,8 +176,9 @@ export function legacyDisposition(status: string): CIDisposition {
   const s = status.trim().toLowerCase();
   if (s.startsWith("sold")) return "SOLD";
   if (s.startsWith("recovered")) return "RECOVERED";
+  if (s.startsWith("stolen")) return "STOLEN";
   if (s.includes("layaway")) return "LAYAWAY";
-  return "HELD";
+  return "FOR_SALE";
 }
 
 export interface ItemEntryLike {
@@ -236,7 +238,7 @@ export function itemToFormValues(item: ItemFormLike): Record<string, string> {
     notes: s(item.notes),
     condition: s(e?.condition ?? "USED"),
     location: s(e?.location ?? "STORE"),
-    disposition: s(e?.disposition ?? "HELD"),
+    disposition: s(e?.disposition ?? "FOR_SALE"),
     isCrack: b(e?.isCrack),
     isBuild: b(e?.isBuild),
     isBuildWOFigs: b(e?.isBuildWOFigs),

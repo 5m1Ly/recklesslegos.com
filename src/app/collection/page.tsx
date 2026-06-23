@@ -70,7 +70,7 @@ function toView(item: ItemWithRelations): ItemView {
     quantity: item.entries.length,
     retail: brickeconomy?.retail ?? 0,
     avg: avgValue(evals),
-    disposition: primary?.disposition ?? "HELD",
+    disposition: primary?.disposition ?? "FOR_SALE",
     location: primary?.location ?? "UNKNOWN",
     sources,
     entries: item.entries.map((e) => ({
@@ -111,7 +111,7 @@ export default async function CollectionPage() {
   });
   const breakdown = (g: { sets: ItemView[]; figs: ItemView[] }) =>
     `${pl(countQty(g.sets), "set")} · ${pl(countQty(g.figs), "minifig")}`;
-  const held = grp("HELD");
+  const forSale = grp("FOR_SALE");
   const sold = grp("SOLD");
 
   const stats = [
@@ -128,9 +128,9 @@ export default async function CollectionPage() {
       }),
     ),
     {
-      n: fmtMoney(sumAvg([...held.sets, ...held.figs])),
-      label: "Still with Bricks & Minifigs",
-      x: breakdown(held),
+      n: fmtMoney(sumAvg([...forSale.sets, ...forSale.figs])),
+      label: "For sale",
+      x: breakdown(forSale),
     },
     {
       n: fmtMoney(sumAvg([...sold.sets, ...sold.figs])),

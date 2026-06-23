@@ -303,20 +303,20 @@ enum CIECondition {
 enum CIELocation {
     HOME
     STORE
-    STOLEN
     STORAGE
     // all the empty cells or the once that list the word "Crack" should be definded as unknown
     UNKNOWN
 }
 
 /**
- * Where an item ended up. Orthogonal to physical location: an item can be SOLD
- * while we still record where it physically was.
+ * What is happening with a copy. Orthogonal to physical location: an item can be
+ * SOLD or STOLEN while we still record where it physically was/is.
  */
 enum CIDisposition {
-    HELD
+    FOR_SALE
     SOLD
     LAYAWAY
+    STOLEN
     RECOVERED
 }
 
@@ -336,7 +336,7 @@ model CollectionItemEntry {
      */
     location CIELocation @default(STORE)
 
-    disposition CIDisposition @default(HELD)
+    disposition CIDisposition @default(FOR_SALE)
 
     isCrack       Boolean @default(false)
     isBuild       Boolean @default(false)

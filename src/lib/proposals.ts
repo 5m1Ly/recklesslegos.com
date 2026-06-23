@@ -67,7 +67,7 @@ function coerceEntry(raw: unknown) {
     data: {
       condition: enumVal(e.condition, CIECondition, "USED"),
       location: enumVal(e.location, CIELocation, "STORE"),
-      disposition: enumVal(e.disposition, CIDisposition, "HELD"),
+      disposition: enumVal(e.disposition, CIDisposition, "FOR_SALE"),
       isCrack: bool(e.isCrack),
       isBuild: bool(e.isBuild),
       isBuildWOFigs: bool(e.isBuildWOFigs),
@@ -344,7 +344,7 @@ export async function applyProposal(
       const entryData = {
         condition: enumVal(p.condition, CIECondition, "USED"),
         location: enumVal(p.location, CIELocation, "STORE"),
-        disposition: enumVal(p.disposition, CIDisposition, "HELD"),
+        disposition: enumVal(p.disposition, CIDisposition, "FOR_SALE"),
         isCrack: bool(p.isCrack),
         isBuild: bool(p.isBuild),
         isBuildWOFigs: bool(p.isBuildWOFigs),

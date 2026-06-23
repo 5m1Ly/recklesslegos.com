@@ -70,6 +70,15 @@ jobs:
       - name: Import LEGO collection (BrickEconomy)
         run: pnpm db:seed:lego || echo "::warning::BrickEconomy import failed — keeping existing collection data"
 
+      # Curated per-copy inventory from data/collection-import.csv (cost, location,
+      # disposition, listing/sold prices + a MANUAL value evaluation). Runs AFTER
+      # the BrickEconomy import so the CSV owns the set copies; preserves the
+      # BrickEconomy market value, minifigs, and admin-added items. Best-effort:
+      # a data hiccup must not block the deploy (the migration backfill already
+      # populated the collection).
+      - name: Seed curated collection inventory (CSV)
+        run: pnpm db:seed:collection || echo "::warning::collection CSV import failed — keeping existing collection data"
+
       - name: Build
         run: pnpm build
 

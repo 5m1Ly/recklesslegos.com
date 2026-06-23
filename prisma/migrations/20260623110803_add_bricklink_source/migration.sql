@@ -1,0 +1,2 @@
+-- AlterEnum
+ALTER TYPE "CIESource" ADD VALUE 'BRICKLINK';

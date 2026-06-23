@@ -20,6 +20,7 @@ import type {
 
 export const SOURCE_ORDER: CIESource[] = [
   "BRICKECONOMY",
+  "BRICKLINK",
   "BRICKSET",
   "EBAY",
   "MANUAL",
@@ -28,6 +29,7 @@ export const SOURCE_ORDER: CIESource[] = [
 
 export const SOURCE_LABELS: Record<CIESource, string> = {
   BRICKECONOMY: "BrickEconomy",
+  BRICKLINK: "BrickLink",
   BRICKSET: "Brickset",
   EBAY: "eBay (sold)",
   MANUAL: "Manual / appraisal",

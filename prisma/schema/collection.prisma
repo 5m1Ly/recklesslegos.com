@@ -242,6 +242,7 @@ model CollectionItem {
 
 enum CIESource {
     BRICKECONOMY
+    BRICKLINK
     BRICKSET
     EBAY
     // generic in-person appraisal / other site, admin-entered

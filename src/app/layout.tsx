@@ -1,7 +1,9 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Spectral } from "next/font/google";
+import Script from "next/script";
 import { AdminProvider } from "@/components/admin-provider";
+import { AdSenseBlock } from "@/components/adsense-block";
 import { getAdminFromCookie } from "@/lib/admin-auth";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -9,6 +11,13 @@ import "./globals.css";
 // Google Analytics 4 measurement ID (e.g. "G-XXXXXXXXXX"). When unset — local
 // dev, previews — the GA script is omitted entirely.
 const gaId = process.env.NEXT_PUBLIC_GA_ID;
+const adsenseClientIdRaw = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const adsenseClientId = adsenseClientIdRaw
+  ? adsenseClientIdRaw.startsWith("ca-pub-")
+    ? adsenseClientIdRaw
+    : `ca-pub-${adsenseClientIdRaw}`
+  : undefined;
+const adsenseSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID;
 
 const spectral = Spectral({
   variable: "--font-spectral",
@@ -86,9 +95,23 @@ export default async function RootLayout({
       }
     >
       <body>
-        <AdminProvider isAdmin={isAdmin}>{children}</AdminProvider>
+        {adsenseClientId ? (
+          <Script
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`}
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        ) : null}
+        <AdminProvider isAdmin={isAdmin}>
+          {children}
+          {adsenseClientId && adsenseSlotId ? (
+            <div style={{ padding: "1.5rem 1rem" }}>
+              <AdSenseBlock clientId={adsenseClientId} slotId={adsenseSlotId} />
+            </div>
+          ) : null}
+        </AdminProvider>
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
-      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }

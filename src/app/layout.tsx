@@ -1,6 +1,7 @@
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Spectral } from "next/font/google";
+import Script from "next/script";
 import { AdminProvider } from "@/components/admin-provider";
 import { getAdminFromCookie } from "@/lib/admin-auth";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
@@ -9,6 +10,8 @@ import "./globals.css";
 // Google Analytics 4 measurement ID (e.g. "G-XXXXXXXXXX"). When unset — local
 // dev, previews — the GA script is omitted entirely.
 const gaId = process.env.NEXT_PUBLIC_GA_ID;
+const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const adsenseSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID;
 
 const spectral = Spectral({
   variable: "--font-spectral",
@@ -85,16 +88,33 @@ export default async function RootLayout({
         } as React.CSSProperties
       }
     >
-      <head>
-        <Script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1320385386608176"
-          crossOrigin="anonymous"
-          strategy="afterInteractive"
-        />
-      </head>
       <body>
-        <AdminProvider isAdmin={isAdmin}>{children}</AdminProvider>
+        <AdminProvider isAdmin={isAdmin}>
+          {children}
+          {adsenseClientId && adsenseSlotId ? (
+            <div style={{ padding: "1.5rem 1rem" }}>
+              <ins
+                className="adsbygoogle"
+                style={{ display: "block", textAlign: "center" }}
+                data-ad-client={adsenseClientId}
+                data-ad-slot={adsenseSlotId}
+                data-ad-format="auto"
+                data-full-width-responsive="true"
+              />
+              <Script id="adsense-init" strategy="afterInteractive">
+                {"(adsbygoogle = window.adsbygoogle || []).push({});"}
+              </Script>
+            </div>
+          ) : null}
+        </AdminProvider>
+        {adsenseClientId ? (
+          <Script
+            async
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`}
+            crossOrigin="anonymous"
+            strategy="afterInteractive"
+          />
+        ) : null}
       </body>
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>

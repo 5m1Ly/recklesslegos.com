@@ -27,7 +27,12 @@ export function AdSenseBlock({ clientId, slotId }: AdSenseBlockProps) {
 
       const adElement = adRef.current;
       if (!adElement) return;
-      if (adElement.dataset.adInitialized === "true") return;
+      if (
+        adElement.dataset.adInitialized === "true" ||
+        adElement.dataset.adInitialized === "failed"
+      ) {
+        return;
+      }
 
       if (window.adsbygoogle) {
         try {
@@ -35,7 +40,8 @@ export function AdSenseBlock({ clientId, slotId }: AdSenseBlockProps) {
           adElement.dataset.adInitialized = "true";
           return;
         } catch {
-          adElement.dataset.adInitialized = "false";
+          adElement.dataset.adInitialized = "failed";
+          return;
         }
       }
 

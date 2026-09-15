@@ -30,9 +30,13 @@ export function AdSenseBlock({ clientId, slotId }: AdSenseBlockProps) {
       if (adElement.dataset.adInitialized === "true") return;
 
       if (window.adsbygoogle) {
-        adElement.dataset.adInitialized = "true";
-        window.adsbygoogle.push({});
-        return;
+        try {
+          window.adsbygoogle.push({});
+          adElement.dataset.adInitialized = "true";
+          return;
+        } catch {
+          adElement.dataset.adInitialized = "false";
+        }
       }
 
       attempts += 1;

@@ -110,8 +110,8 @@ export default async function RootLayout({
             </div>
           ) : null}
         </AdminProvider>
+        {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
       </body>
-      {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>
   );
 }

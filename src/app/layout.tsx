@@ -89,6 +89,13 @@ export default async function RootLayout({
       }
     >
       <body>
+        {adsenseClientId ? (
+          <Script
+            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`}
+            crossOrigin="anonymous"
+            strategy="beforeInteractive"
+          />
+        ) : null}
         <AdminProvider isAdmin={isAdmin}>
           {children}
           {adsenseClientId && adsenseSlotId ? (
@@ -107,14 +114,6 @@ export default async function RootLayout({
             </div>
           ) : null}
         </AdminProvider>
-        {adsenseClientId ? (
-          <Script
-            async
-            src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${encodeURIComponent(adsenseClientId)}`}
-            crossOrigin="anonymous"
-            strategy="afterInteractive"
-          />
-        ) : null}
       </body>
       {gaId ? <GoogleAnalytics gaId={gaId} /> : null}
     </html>

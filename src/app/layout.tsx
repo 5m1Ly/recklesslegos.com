@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { IBM_Plex_Mono, IBM_Plex_Sans, Spectral } from "next/font/google";
 import Script from "next/script";
 import { AdminProvider } from "@/components/admin-provider";
+import { AdSenseBlock } from "@/components/adsense-block";
 import { getAdminFromCookie } from "@/lib/admin-auth";
 import { SITE_DESCRIPTION, SITE_NAME, SITE_URL } from "@/lib/site";
 import "./globals.css";
@@ -100,17 +101,7 @@ export default async function RootLayout({
           {children}
           {adsenseClientId && adsenseSlotId ? (
             <div style={{ padding: "1.5rem 1rem" }}>
-              <ins
-                className="adsbygoogle"
-                style={{ display: "block", textAlign: "center" }}
-                data-ad-client={adsenseClientId}
-                data-ad-slot={adsenseSlotId}
-                data-ad-format="auto"
-                data-full-width-responsive="true"
-              />
-              <Script id="adsense-init" strategy="afterInteractive">
-                {"(adsbygoogle = window.adsbygoogle || []).push({});"}
-              </Script>
+              <AdSenseBlock clientId={adsenseClientId} slotId={adsenseSlotId} />
             </div>
           ) : null}
         </AdminProvider>

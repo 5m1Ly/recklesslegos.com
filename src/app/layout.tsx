@@ -85,6 +85,14 @@ export default async function RootLayout({
         } as React.CSSProperties
       }
     >
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-1320385386608176"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
       <body>
         <AdminProvider isAdmin={isAdmin}>{children}</AdminProvider>
       </body>

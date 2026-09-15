@@ -11,7 +11,12 @@ import "./globals.css";
 // Google Analytics 4 measurement ID (e.g. "G-XXXXXXXXXX"). When unset — local
 // dev, previews — the GA script is omitted entirely.
 const gaId = process.env.NEXT_PUBLIC_GA_ID;
-const adsenseClientId = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const adsenseClientIdRaw = process.env.NEXT_PUBLIC_ADSENSE_CLIENT_ID;
+const adsenseClientId = adsenseClientIdRaw
+  ? adsenseClientIdRaw.startsWith("ca-pub-")
+    ? adsenseClientIdRaw
+    : `ca-pub-${adsenseClientIdRaw}`
+  : undefined;
 const adsenseSlotId = process.env.NEXT_PUBLIC_ADSENSE_SLOT_ID;
 
 const spectral = Spectral({

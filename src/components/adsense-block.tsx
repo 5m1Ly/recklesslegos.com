@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 declare global {
   interface Window {
@@ -16,6 +16,8 @@ type AdSenseBlockProps = {
 };
 
 export function AdSenseBlock({ clientId, slotId }: AdSenseBlockProps) {
+  const adRef = useRef<HTMLModElement>(null);
+
   useEffect(() => {
     let stopped = false;
     let attempts = 0;
@@ -23,7 +25,12 @@ export function AdSenseBlock({ clientId, slotId }: AdSenseBlockProps) {
     const pushAd = () => {
       if (stopped) return;
 
+      const adElement = adRef.current;
+      if (!adElement) return;
+      if (adElement.dataset.adInitialized === "true") return;
+
       if (window.adsbygoogle) {
+        adElement.dataset.adInitialized = "true";
         window.adsbygoogle.push({});
         return;
       }
@@ -42,6 +49,7 @@ export function AdSenseBlock({ clientId, slotId }: AdSenseBlockProps) {
 
   return (
     <ins
+      ref={adRef}
       className="adsbygoogle"
       style={{ display: "block", textAlign: "center" }}
       data-ad-client={clientId}

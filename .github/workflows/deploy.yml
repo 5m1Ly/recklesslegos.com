@@ -33,6 +33,7 @@ jobs:
           POSTGRES_DB=${{ secrets.POSTGRES_DB }}
           POSTGRES_PORT=${{ secrets.POSTGRES_PORT }}
           NEXT_PUBLIC_GA_ID=${{ secrets.NEXT_PUBLIC_GA_ID }}
+          NEXT_PUBLIC_ADSENSE_CLIENT_ID=ca-pub-1320385386608176
           NEXT_PUBLIC_SITE_URL=https://recklessbricks.com
           SMTP_HOST=ssl0.ovh.net
           SMTP_PORT=465
